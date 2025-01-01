@@ -8,6 +8,10 @@ class RefunBot {
 
   async startBot() {
     this.autoWA = new AutoWA("RefunBot");
+    this.autoWA.event.onConnecting(() => {
+      console.log("RefunBot is connecting...");
+    });
+
     this.autoWA.event.onConnected(() => {
       console.log("RefunBot is ready!");
     });
@@ -23,7 +27,17 @@ class RefunBot {
         .handlers()
         .filter((handler) => handler.aliases.includes(command))[0];
       if (handler) {
+        await this.autoWA.sendReaction({
+          to: msg.from,
+          text: "⌛",
+          answering: msg,
+        });
         await handler.execute();
+        await this.autoWA.sendReaction({
+          to: msg.from,
+          text: "",
+          answering: msg,
+        });
       }
     });
     await this.autoWA.initialize();

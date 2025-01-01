@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "keywords": [
     "whatsapp",
@@ -16,6 +17,7 @@
   "license": "ISC",
   "description": "WhatsApp Automation with WhatsAuto.js library",
   "dependencies": {
-    "whatsauto.js": "^0.1.0"
+    "axios": "^1.7.9",
+    "whatsauto.js": "^0.1.2"
   }
 }

@@ -11,6 +11,7 @@ class Ping extends Command {
     await this.autoWA.sendText({
       to: this.msg.from,
       text: "Pong!",
+      answering: this.msg,
     });
   }
 }
