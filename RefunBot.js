@@ -4,6 +4,7 @@ const CommandHandler = require("./command/handler");
 class RefunBot {
   contructor() {
     this.name = "Refun Bot";
+    this.isReading = false;
   }
 
   async startBot() {
@@ -14,6 +15,10 @@ class RefunBot {
 
     this.autoWA.event.onConnected(() => {
       console.log("RefunBot is ready!");
+    });
+
+    this.autoWA.event.onMessage(async (msg) => {
+      await this.autoWA.readMessage({ key: msg.key });
     });
 
     this.autoWA.event.onMessageReceived(async (msg) => {

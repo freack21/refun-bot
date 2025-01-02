@@ -2,6 +2,16 @@ const Command = require("./base");
 
 class Sticker extends Command {
   aliases = ["s", "sticker"];
+  name = "Sticker";
+  description = "Make a sticker from an image or video.";
+  params = {
+    media: {
+      required: true,
+      description: "The image or video you want to make a sticker",
+      example: "send or reply to an image or video.",
+      value: null,
+    },
+  };
 
   constructor(autoWA, msg, args) {
     super(autoWA, msg, args);
@@ -28,19 +38,14 @@ class Sticker extends Command {
 
   async execute() {
     const filePath = await this.downloadMedia();
-    if (filePath) {
-      await this.autoWA.sendSticker({
-        to: this.msg.from,
-        filePath,
-        answering: this.msg,
-      });
-    } else {
-      await this.autoWA.sendText({
-        to: this.msg.from,
-        text: "Please send an media or reply to an media.",
-        answering: this.msg,
-      });
+    if (!filePath) {
+      return await this.sendValidationError();
     }
+    await this.autoWA.sendSticker({
+      to: this.msg.from,
+      filePath,
+      answering: this.msg,
+    });
   }
 }
 

@@ -1,4 +1,3 @@
-const Ping = require("../Ping");
 const fs = require("fs");
 const path = require("path");
 
@@ -18,7 +17,7 @@ class CommandHandler {
   handlers() {
     return this.getHandlerFiles().map((file) => {
       const handler = require(`../${file}`);
-      return new handler(this.autoWA, this.msg, this.args);
+      return new handler(this.autoWA, this.msg, this.args, this);
     });
   }
 }
