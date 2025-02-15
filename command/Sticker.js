@@ -45,6 +45,8 @@ class Sticker extends Command {
       to: this.msg.from,
       filePath,
       answering: this.msg,
+      pack: "@fkrvndii",
+      author: "Fikri Rivandi",
     });
   }
 }

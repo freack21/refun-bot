@@ -3,6 +3,7 @@ const fs = require("fs");
 const axios = require("axios");
 
 class QuickChat extends Command {
+  hide = true;
   aliases = ["qc", "quickchat"];
   description = "Make a QuickChat sticker.";
   name = "QuickChat";

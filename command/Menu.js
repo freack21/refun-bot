@@ -1,5 +1,4 @@
 const Command = require("./base/");
-const CommandHandler = require("./handler/CommandHandler");
 
 class Menu extends Command {
   aliases = ["menu", "ls"];
@@ -10,16 +9,19 @@ class Menu extends Command {
   }
 
   getListCommand() {
-    return this.commandHandler.handlers().map((handler) => {
-      return `*${handler.name}* - ${
-        handler.description || "no description provided"
-      }, _e.g._: ${handler.aliases.join(", ")}`;
-    });
+    return this.commandHandler
+      .handlers()
+      .filter((handler) => !handler.hide)
+      .map((handler) => {
+        return `*${handler.name}* - ${
+          handler.description || "no description provided"
+        }, _e.g._: ${handler.aliases.join(", ")}`;
+      });
   }
 
   async execute() {
     const listCommand = this.getListCommand();
-    let menu = `*List Command:*\n${listCommand.join("\n-\n")}`;
+    let menu = `*List Command:*\n=\n${listCommand.join("\n-\n")}`;
     await this.autoWA.sendText({
       to: this.msg.from,
       text: menu,
