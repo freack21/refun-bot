@@ -1,6 +1,6 @@
-# Refun Bot
+# FundayBOT
 
-Refun Bot is a Node.js-based bot designed to automate WhatsApp with [WhatsAuto.js](https://github.com/freack21/whatsauto.js) library.
+FundayBOT is a Node.js-based bot designed to automate WhatsApp with [WhatsAuto.js](https://github.com/freack21/whatsauto.js) library.
 
 ## ✨ Features
 

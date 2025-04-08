@@ -3,3 +3,5 @@ package-lock.json
 .prettierrc
 
 *_creds/
+
+dist/

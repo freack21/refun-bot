@@ -1,0 +1,39 @@
+import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
+import path from "path";
+import * as fs from "fs";
+import Command from "../base";
+import { CommandConstructor } from "../../types";
+
+export default class CommandHandler {
+  private autoWA: AutoWA;
+  private msg: IWAutoMessageReceived;
+  private args: string[];
+
+  constructor(autoWA: AutoWA, msg: IWAutoMessageReceived, args: string[]) {
+    this.autoWA = autoWA;
+    this.msg = msg;
+    this.args = args;
+  }
+
+  getHandlerFiles() {
+    return fs
+      .readdirSync(path.join(__dirname, "../"))
+      .filter(
+        (file) =>
+          file.endsWith(".js") ||
+          (file.endsWith(".ts") && file !== "index.js" && file !== "index.ts")
+      );
+  }
+
+  async handlers(): Promise<Command[]> {
+    const handlers = await Promise.all(
+      this.getHandlerFiles().map(async (file) => {
+        const modulePath = path.join(__dirname, "..", file);
+        const handlerModule = await import(modulePath);
+        const HandlerClass = handlerModule.default as CommandConstructor;
+        return new HandlerClass(this.autoWA, this.msg, this.args, this);
+      })
+    );
+    return handlers;
+  }
+}

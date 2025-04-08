@@ -1,38 +1,46 @@
-const Command = require("./base");
-const fs = require("fs");
-const axios = require("axios");
+import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
+import Command from "./base";
+import CommandHandler from "./handler";
+import axios from "axios";
+import * as fs from "fs";
 
-class QuickChat extends Command {
+export default class QuickChat extends Command {
   hide = true;
   aliases = ["qc", "quickchat"];
   description = "Make a QuickChat sticker.";
   name = "QuickChat";
-  params = {
-    msg: {
-      required: true,
-      type: "string",
-      description: "The message you want to put in QuickChat",
-      example: "Hello, World!",
-      value: null,
-    },
-    name: {
-      required: false,
-      type: "string",
-      description: "The name you want to put in QuickChat",
-      example: "John Doe",
-      value: "WhatsAuto.js",
-    },
-    imgUrl: {
-      required: false,
-      type: "string",
-      description: "The image URL you want to put in QuickChat avatar",
-      example: "https://example.com/image.jpg",
-      value: null,
-    },
-  };
 
-  constructor(autoWA, msg, args) {
-    super(autoWA, msg, args);
+  constructor(
+    autoWA: AutoWA,
+    msg: WAutoMessageComplete,
+    args: string[],
+    commandHandler: CommandHandler
+  ) {
+    super(autoWA, msg, args, commandHandler);
+
+    this.params = {
+      msg: {
+        required: true,
+        type: "string",
+        description: "The message you want to put in QuickChat",
+        example: "Hello, World!",
+        value: null,
+      },
+      name: {
+        required: false,
+        type: "string",
+        description: "The name you want to put in QuickChat",
+        example: "John Doe",
+        value: "WhatsAuto.js",
+      },
+      imgUrl: {
+        required: false,
+        type: "string",
+        description: "The image URL you want to put in QuickChat avatar",
+        example: "https://example.com/image.jpg",
+        value: null,
+      },
+    };
   }
 
   async downloadProfile() {
@@ -70,15 +78,11 @@ class QuickChat extends Command {
 
       const filePath = `${Date.now() + Math.random() * 1000}.png`;
       fs.writeFileSync(filePath, response_.data);
-      await this.autoWA.sendSticker({
-        to: this.msg.from,
+      await this.msg.replyWithSticker({
         filePath,
-        answering: this.msg,
       });
     } catch (error) {
       await this.sendExecutionError();
     }
   }
 }
-
-module.exports = QuickChat;

@@ -1,6 +1,8 @@
-const Command = require("./base");
+import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
+import Command from "./base";
+import CommandHandler from "./handler";
 
-class Sticker extends Command {
+export default class Sticker extends Command {
   aliases = ["s", "sticker"];
   name = "Sticker";
   description = "Make a sticker from an image or video.";
@@ -13,8 +15,13 @@ class Sticker extends Command {
     },
   };
 
-  constructor(autoWA, msg, args) {
-    super(autoWA, msg, args);
+  constructor(
+    autoWA: AutoWA,
+    msg: WAutoMessageComplete,
+    args: string[],
+    commandHandler: CommandHandler
+  ) {
+    super(autoWA, msg, args, commandHandler);
   }
 
   async downloadMedia() {
@@ -41,14 +48,10 @@ class Sticker extends Command {
     if (!filePath) {
       return await this.sendValidationError();
     }
-    await this.autoWA.sendSticker({
-      to: this.msg.from,
+    await this.msg.replyWithSticker({
       filePath,
-      answering: this.msg,
-      pack: "@fkrvndii",
-      author: "Fikri Rivandi",
+      author: "@fundaybot_",
+      pack: "sticker",
     });
   }
 }
-
-module.exports = Sticker;
