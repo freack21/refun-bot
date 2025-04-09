@@ -3,16 +3,24 @@ import path from "path";
 import * as fs from "fs";
 import Command from "../base";
 import { CommandConstructor } from "../../types";
+import FundayBOT from "../../FundayBOT";
 
 export default class CommandHandler {
   private autoWA: AutoWA;
   private msg: IWAutoMessageReceived;
   private args: string[];
+  private fundayBOT: FundayBOT;
 
-  constructor(autoWA: AutoWA, msg: IWAutoMessageReceived, args: string[]) {
+  constructor(
+    autoWA: AutoWA,
+    msg: IWAutoMessageReceived,
+    args: string[],
+    fundayBOT: FundayBOT
+  ) {
     this.autoWA = autoWA;
     this.msg = msg;
     this.args = args;
+    this.fundayBOT = fundayBOT;
   }
 
   getHandlerFiles() {
@@ -31,9 +39,19 @@ export default class CommandHandler {
         const modulePath = path.join(__dirname, "..", file);
         const handlerModule = await import(modulePath);
         const HandlerClass = handlerModule.default as CommandConstructor;
-        return new HandlerClass(this.autoWA, this.msg, this.args, this);
+        return new HandlerClass(
+          this.autoWA,
+          this.msg,
+          this.args,
+          this,
+          this.getBOT()
+        );
       })
     );
     return handlers;
+  }
+
+  getBOT() {
+    return this.fundayBOT;
   }
 }

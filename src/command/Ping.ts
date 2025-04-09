@@ -1,6 +1,7 @@
 import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
+import FundayBOT from "../FundayBOT";
 
 export default class Ping extends Command {
   aliases = ["ping"];
@@ -10,9 +11,10 @@ export default class Ping extends Command {
     autoWA: AutoWA,
     msg: WAutoMessageComplete,
     args: string[],
-    commandHandler: CommandHandler
+    commandHandler: CommandHandler,
+    fundayBOT: FundayBOT
   ) {
-    super(autoWA, msg, args, commandHandler);
+    super(autoWA, msg, args, commandHandler, fundayBOT);
   }
 
   async execute() {

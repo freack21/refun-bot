@@ -1,11 +1,15 @@
 import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
+import FundayBOT from "../FundayBOT";
 
 export default class Sticker extends Command {
   aliases = ["s", "sticker"];
   name = "Sticker";
-  description = "Make a sticker from an image or video.";
+  description = {
+    id: "Buat stiker dari gambar atau video",
+    en: "Make a sticker from an image or video",
+  };
   params = {
     media: {
       required: true,
@@ -19,9 +23,10 @@ export default class Sticker extends Command {
     autoWA: AutoWA,
     msg: WAutoMessageComplete,
     args: string[],
-    commandHandler: CommandHandler
+    commandHandler: CommandHandler,
+    fundayBOT: FundayBOT
   ) {
-    super(autoWA, msg, args, commandHandler);
+    super(autoWA, msg, args, commandHandler, fundayBOT);
   }
 
   async downloadMedia() {

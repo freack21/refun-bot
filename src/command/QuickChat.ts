@@ -3,20 +3,25 @@ import Command from "./base";
 import CommandHandler from "./handler";
 import axios from "axios";
 import * as fs from "fs";
+import FundayBOT from "../FundayBOT";
 
 export default class QuickChat extends Command {
   hide = true;
   aliases = ["qc", "quickchat"];
-  description = "Make a QuickChat sticker.";
+  description = {
+    id: "Membuat stiker QuickChat",
+    en: "Make a QuickChat sticker",
+  };
   name = "QuickChat";
 
   constructor(
     autoWA: AutoWA,
     msg: WAutoMessageComplete,
     args: string[],
-    commandHandler: CommandHandler
+    commandHandler: CommandHandler,
+    fundayBOT: FundayBOT
   ) {
-    super(autoWA, msg, args, commandHandler);
+    super(autoWA, msg, args, commandHandler, fundayBOT);
 
     this.params = {
       msg: {
@@ -72,6 +77,7 @@ export default class QuickChat extends Command {
           name: this.params.name.value || this.msg.pushName,
         },
       });
+
       const response_ = await axios.get(response.data.link, {
         responseType: "arraybuffer",
       });
