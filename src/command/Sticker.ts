@@ -2,6 +2,7 @@ import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
+import { CommandGroupEn, CommandGroupId, Language } from "../data/lang";
 
 export default class Sticker extends Command {
   aliases = ["s", "sticker"];
@@ -25,6 +26,10 @@ export default class Sticker extends Command {
         }),
       default: null,
     },
+  };
+  group: Record<Language, CommandGroupEn | CommandGroupId> = {
+    en: "Utility",
+    id: "Utilitas",
   };
 
   constructor(

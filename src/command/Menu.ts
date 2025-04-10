@@ -26,11 +26,17 @@ export default class Menu extends Command {
     const handlers = await this.commandHandler.handlers();
 
     const grouped: Record<string, string[]> = {};
+    const lang = this.getConfig("lang") as Language;
 
     handlers
       .filter((handler) => !handler.hide)
       .forEach((handler) => {
-        const group = handler.group || "Other";
+        const group =
+          handler.group[lang] ||
+          {
+            en: "Other",
+            id: "Lainnya",
+          }[lang];
 
         const line = this.getSentence("menulist", {
           name: handler.name,

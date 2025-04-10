@@ -1,6 +1,18 @@
 export const _languages_ = ["en", "id"] as const;
 export type Language = (typeof _languages_)[number];
 export type Replacements = Record<string, string | number>;
+export type CommandGroupEn =
+  | "Utility"
+  | "General"
+  | "AI"
+  | "Knowledge"
+  | "Basic";
+export type CommandGroupId =
+  | "Utilitas"
+  | "Umum"
+  | "AI"
+  | "Pengetahuan"
+  | "Dasar";
 
 const lang: Record<Language, Record<string, string>> = {
   en: {
@@ -19,6 +31,11 @@ const lang: Record<Language, Record<string, string>> = {
     qc_server_error: "The QuickChat maker server refused the connection😥",
     simi_empty_msg: "Messages cannot be sent😥",
     simi_server_err: "Server cannot connect to SimSimi🥺",
+    tgs_result: "❓ *Did You Know*\n\n{msg}",
+    tgs_empty_msg: "Info was not found😥",
+    tgs_server_err: "The server cannot get information🥺",
+    qanime_result:
+      '📢 *Quotes Anime*\n\n🗣️ *{char}*\n  🇮🇩 _"{q_id}"_\n  🇬🇧 _"{q_en}"_\n\n🎬 {anime}',
   },
   id: {
     menu: "Halo @{user} 👋\n\n*INFO BOT*\n  🔹 Nama : {bot_name}\n  🔹 Prefix : `all`\n\n*INFO USER*\n  🔹 Nama : {user_name}\n  🔹 Nickname : {user_nick}\n  🔹 Limit : {user_limit}\n\n{menu}",
@@ -36,6 +53,11 @@ const lang: Record<Language, Record<string, string>> = {
     qc_server_error: "Server QuickChat Maker menolak koneksi😥",
     simi_empty_msg: "Pesan tidak dapat dikirim😥",
     simi_server_err: "Server tidak dapat menghubungkan ke SimSimi🥺",
+    tgs_result: "❓ *Tau Gak Sih*\n\n{msg}",
+    tgs_empty_msg: "Info tidak ditemukan😥",
+    tgs_server_err: "Server tidak dapat mendapatkan informasi🥺",
+    qanime_result:
+      '📢 *Quotes Anime*\n\n🗣️ *{char}*\n  🇮🇩 _"{q_id}"_\n  🇬🇧 _"{q_en}"_\n\n🎬 {anime}',
   },
 };
 

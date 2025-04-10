@@ -3,6 +3,8 @@ import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 import axios from "axios";
+import querystring from "querystring";
+import { CommandGroupEn, CommandGroupId, Language } from "../data/lang";
 
 export default class Simi extends Command {
   aliases = ["simi"];
@@ -23,6 +25,10 @@ export default class Simi extends Command {
       default: "",
     },
   };
+  group: Record<Language, CommandGroupEn | CommandGroupId> = {
+    en: "AI",
+    id: "AI",
+  };
 
   constructor(
     autoWA: AutoWA,
@@ -36,12 +42,15 @@ export default class Simi extends Command {
 
   async execute() {
     try {
-      const param_text = this.getParamValue("text");
+      const param_text = await this.getParamValue("text");
       const lc = this.getConfig("lang");
-      const res = await axios.post("https://api.simsimi.vn/v1/simtalk", {
-        text: param_text,
-        lc,
-      });
+      const res = await axios.post(
+        "https://api.simsimi.vn/v1/simtalk",
+        querystring.stringify({
+          text: param_text as string,
+          lc,
+        })
+      );
       if (res.data.message)
         await this.msg.replyWithText(res.data.message.trim());
       else await this.msg.replyWithText(this.getSentence("simi_empty_msg"));

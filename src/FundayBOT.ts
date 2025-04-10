@@ -104,4 +104,15 @@ export default class FundayBOT {
   getName() {
     return this.name;
   }
+
+  pickRandom<T>(arr: T[]): T {
+    if (arr.length === 0) return arr[0];
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  getRandomInt(min: number, max: number): number {
+    const minCeil = Math.ceil(min);
+    const maxFloor = Math.floor(max);
+    return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
+  }
 }

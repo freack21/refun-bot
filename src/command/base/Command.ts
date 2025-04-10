@@ -1,7 +1,12 @@
 import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
 import { ConfigValue, ParamSchema } from "../../types";
 import CommandHandler from "../handler/CommandHandler";
-import lang, { Language, Replacements } from "../../data/lang";
+import lang, {
+  CommandGroupEn,
+  CommandGroupId,
+  Language,
+  Replacements,
+} from "../../data/lang";
 import FundayBOT from "../../FundayBOT";
 
 export default class Command {
@@ -14,7 +19,10 @@ export default class Command {
   public aliases: string[] = [""];
   public hide: boolean = false;
   public premium: boolean = false;
-  public group: string = "General";
+  public group: Record<Language, CommandGroupEn | CommandGroupId> = {
+    en: "Basic",
+    id: "Dasar",
+  };
   public errorExplanation: string = "";
   public expectedArgs: string = "";
 
