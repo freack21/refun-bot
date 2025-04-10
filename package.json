@@ -8,7 +8,8 @@
   ],
   "scripts": {
     "build": "tsc && npx prettier --write dist/**/*.js",
-    "start": "tsc && npx prettier --write dist/**/*.js && node ./dist/index.js"
+    "dev": "npx ts-node ./src/",
+    "start": "tsc && node ./dist/index.js"
   },
   "keywords": [
     "whatsapp",
@@ -22,7 +23,7 @@
   "description": "FundayBOT app with WhatsAuto.js library",
   "dependencies": {
     "axios": "^1.7.9",
-    "whatsauto.js": "^1.0.2"
+    "whatsauto.js": "^1.0.5"
   },
   "devDependencies": {
     "ts-node": "^10.9.2",

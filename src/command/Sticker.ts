@@ -13,9 +13,17 @@ export default class Sticker extends Command {
   params = {
     media: {
       required: true,
-      description: "The image or video you want to make a sticker",
+      description: {
+        en: "The image or video you want to make a sticker",
+        id: "Gambar atau video yang ingin kamu buat stiker",
+      },
       example: "send or reply to an image or video.",
-      value: null,
+      value: async () =>
+        await this.msg.toSticker({
+          author: "@fundaybot_",
+          pack: "sticker",
+        }),
+      default: null,
     },
   };
 
@@ -29,34 +37,9 @@ export default class Sticker extends Command {
     super(autoWA, msg, args, commandHandler, fundayBOT);
   }
 
-  async downloadMedia() {
-    if (this.msg.hasMedia && ["image", "video"].includes(this.msg.mediaType)) {
-      return await this.msg.downloadMedia(
-        `${Date.now() + Math.random() * 1000}`
-      );
-    }
-
-    if (
-      this.msg.quotedMessage &&
-      ["image", "video"].includes(this.msg.quotedMessage.mediaType)
-    ) {
-      return await this.msg.quotedMessage.downloadMedia(
-        `${Date.now() + Math.random() * 1000}`
-      );
-    }
-
-    return null;
-  }
-
   async execute() {
-    const filePath = await this.downloadMedia();
-    if (!filePath) {
-      return await this.sendValidationError();
-    }
-    await this.msg.replyWithSticker({
-      filePath,
-      author: "@fundaybot_",
-      pack: "sticker",
-    });
+    const param_media = await this.getParamValue("media");
+
+    await this.msg.replyWithSticker(param_media as Buffer);
   }
 }

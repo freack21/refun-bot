@@ -27,8 +27,19 @@ export default class ChangeLanguage extends Command {
     this.params = {
       lang: {
         required: true,
-        description: "Language code you want to choose as preference",
+        description: {
+          en: "Language code you want to choose as preference",
+          id: "Kode bahasa yang ingin kamu pilih sebagai preferensi",
+        },
         example: "id",
+        value: async () => {
+          return args[0];
+        },
+        validate: async () => {
+          const lang = await this.params.lang.value();
+          return typeof lang == "string" && this.isValidLanguage(lang);
+        },
+        default: null,
       },
     };
   }
@@ -38,12 +49,10 @@ export default class ChangeLanguage extends Command {
   }
 
   async execute(): Promise<void> {
-    if (!this.args[0]) return await this.sendValidationError();
+    const param_lang = await this.getParamValue("lang");
 
-    if (this.isValidLanguage(this.args[0])) {
-      this.getBOT().setLanguage(this.args[0]);
+    this.setConfig("lang", param_lang as Language);
 
-      await this.msg.replyWithText(this.getSentence("success_ChangeLanguage"));
-    } else await this.sendExecutionError(true);
+    await this.msg.replyWithText(this.getSentence("success_ChangeLanguage"));
   }
 }

@@ -2,6 +2,7 @@ import AutoWA, { phoneToJid, WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
+import { Language } from "../data/lang";
 
 export default class Menu extends Command {
   aliases = ["menu", "ls"];
@@ -31,18 +32,14 @@ export default class Menu extends Command {
       .forEach((handler) => {
         const group = handler.group || "Other";
 
-        const line = this.getSentence("menulist")
-          .replace("{name}", handler.name)
-          .replace(
-            "{desc}",
-            handler.description[this.getBOT().getLanguage()]
-              ? "| " + handler.description[this.getBOT().getLanguage()]
-              : ""
-          )
-          .replace(
-            "{alias}",
-            handler.aliases.map((d) => "`" + d + "`").join(", ")
-          );
+        const line = this.getSentence("menulist", {
+          name: handler.name,
+          desc: handler.description[this.getConfig("lang") as Language]
+            ? "| " + handler.description[this.getConfig("lang") as Language]
+            : "",
+          alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
+          icon: handler.premium ? "⭐" : "🔸",
+        });
 
         if (!grouped[group]) grouped[group] = [];
         grouped[group].push(line);
@@ -60,15 +57,15 @@ export default class Menu extends Command {
       })
       .join("\n\n");
 
-    const text = this.getSentence("menu")
-      .replace(
-        "{user}",
-        phoneToJid({
-          to: this.msg.author,
-          reverse: true,
-        })
-      )
-      .replace("{menu}", menu);
+    const text = this.getSentence("menu", {
+      user: phoneToJid({
+        from: this.msg.author,
+        reverse: true,
+      }),
+      menu,
+      bot_name: this.getBOT().getName(),
+      user_name: this.msg.pushName || "",
+    });
 
     await this.msg.replyWithText(text, { mentions: [this.msg.author] });
   }

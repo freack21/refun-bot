@@ -1,43 +1,51 @@
-import AutoWA from "whatsauto.js";
+import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
 import CommandHandler from "./command/handler";
 import { Language } from "./data/lang";
 import * as fs from "fs";
+import { ConfigShema, ConfigValue } from "./types";
 
 export default class FundayBOT {
-  private name: string;
-  private isReading: boolean;
+  private name: string = "FundayBOT";
   private autoWA: AutoWA;
   private configPath = "./database/config.json";
 
-  constructor() {
-    this.name = "FundayBOT";
-    this.isReading = false;
+  private defaultBotConfig: ConfigShema = {
+    lang: "en",
+    reading: false,
+  };
 
+  constructor() {
     this.autoWA = new AutoWA("FundayBOT", { printQR: true });
   }
 
   async startBot() {
-    this.autoWA.event.onMessageReceived(async (msg) => {
-      if (this.isReading) await msg.read();
+    this.autoWA.event.onPrivateMessageReceived(
+      this.receivedMessageHandler.bind(this)
+    );
+    this.autoWA.event.onGroupMessageReceived(
+      this.receivedMessageHandler.bind(this)
+    );
 
-      if (msg.isStory || msg.isReaction) return;
-
-      const msgText = msg.text || "";
-      const command = this.getCommand(msgText);
-      const args = this.getArgs(msgText);
-
-      const commandHandler = new CommandHandler(this.autoWA, msg, args, this);
-
-      const handler = (await commandHandler.handlers()).filter((handler) =>
-        handler.aliases.includes(command)
-      )[0];
-      if (handler) {
-        await msg.react("⌛");
-        await handler.execute();
-        await msg.react("");
-      }
-    });
     await this.autoWA.initialize();
+  }
+
+  async receivedMessageHandler(msg: IWAutoMessageReceived) {
+    if (this.getConfig("reading") as boolean) await msg.read();
+
+    const msgText = msg.text || "";
+    const command = this.getCommand(msgText);
+    const args = this.getArgs(msgText);
+
+    const commandHandler = new CommandHandler(this.autoWA, msg, args, this);
+
+    const handler = (await commandHandler.handlers()).filter((handler) =>
+      handler.aliases.includes(command)
+    )[0];
+    if (handler) {
+      await msg.react("⌛");
+      if (await handler.validate()) await handler.execute();
+      await msg.react("");
+    }
   }
 
   getCommand(text = "") {
@@ -55,21 +63,6 @@ export default class FundayBOT {
       .map((x) => x.trim());
   }
 
-  setLanguage(language: Language) {
-    this.setConfigs("lang", language);
-  }
-
-  getLanguage(): Language {
-    const data = this.getConfigs();
-
-    if (!data["lang"]) {
-      this.setLanguage("en");
-      return this.getLanguage();
-    }
-
-    return data["lang"] as Language;
-  }
-
   validateConfigs(): void {
     if (!fs.existsSync(this.configPath)) {
       const data = {};
@@ -77,24 +70,35 @@ export default class FundayBOT {
     }
   }
 
-  getConfigs(): Record<string, string> {
+  getConfigs(): ConfigShema {
     this.validateConfigs();
 
     const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
-    const data = JSON.parse(_config) as Record<string, Language>;
+    const data = JSON.parse(_config) as ConfigShema;
 
     return data;
   }
 
-  setConfigs(key: string, value: string): void {
+  setConfig(key: string, value: ConfigValue): void {
     this.validateConfigs();
 
     const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
-    const data = JSON.parse(_config) as Record<string, string>;
+    const data = JSON.parse(_config) as ConfigShema;
 
     data[key] = value;
 
     fs.writeFileSync(this.configPath, JSON.stringify(data, null, 2));
+  }
+
+  getConfig(key: string): ConfigValue {
+    const data = this.getConfigs();
+
+    if (!(key in data)) {
+      this.setConfig(key, this.defaultBotConfig[key]);
+      return this.getConfig(key);
+    }
+
+    return data[key];
   }
 
   getName() {

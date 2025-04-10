@@ -1,4 +1,4 @@
-import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
+import AutoWA, { AutoWAError, WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import axios from "axios";
@@ -27,23 +27,35 @@ export default class QuickChat extends Command {
       msg: {
         required: true,
         type: "string",
-        description: "The message you want to put in QuickChat",
+        description: {
+          en: "The message you want to put in QuickChat",
+          id: "Pesan yang ingin kamu masukkan ke Quickchat",
+        },
         example: "Hello, World!",
-        value: null,
+        value: async () => args[0],
+        default: "",
       },
       name: {
         required: false,
         type: "string",
-        description: "The name you want to put in QuickChat",
+        description: {
+          en: "The name you want to put in QuickChat",
+          id: "Nama yang ingin kamu masukkan ke Quickchat",
+        },
         example: "John Doe",
-        value: "WhatsAuto.js",
+        value: async () => args[1],
+        default: this.getBOT().getName(),
       },
       imgUrl: {
         required: false,
         type: "string",
-        description: "The image URL you want to put in QuickChat avatar",
+        description: {
+          en: "The image URL you want to put in QuickChat avatar",
+          id: "URL gambar yang ingin kamu masukkan ke Avatar Quickchat",
+        },
         example: "https://example.com/image.jpg",
-        value: null,
+        value: async () => args[2],
+        default: "",
       },
     };
   }
@@ -59,22 +71,14 @@ export default class QuickChat extends Command {
   async execute() {
     const img = await this.downloadProfile();
 
-    [this.params.msg.value, this.params.name.value, this.params.imgUrl.value] =
-      this.args;
-
-    for (const key in this.params) {
-      if (this.params[key].required && !this.params[key].value) {
-        await this.sendValidationError();
-        return;
-      }
-    }
-
     try {
+      const param_msg = await this.getParamValue("msg");
+      const param_name = await this.getParamValue("name");
       const response = await axios.get("https://dhti.freack21.web.id/path/qc", {
         params: {
-          msg: this.params.msg.value,
+          msg: param_msg,
           img: this.params.imgUrl || img,
-          name: this.params.name.value || this.msg.pushName,
+          name: param_name || this.msg.pushName,
         },
       });
 
@@ -82,12 +86,9 @@ export default class QuickChat extends Command {
         responseType: "arraybuffer",
       });
 
-      const filePath = `${Date.now() + Math.random() * 1000}.png`;
-      fs.writeFileSync(filePath, response_.data);
-      await this.msg.replyWithSticker({
-        filePath,
-      });
+      await this.msg.replyWithSticker(Buffer.from(response_.data));
     } catch (error) {
+      this.errorExplanation = this.getSentence("qc_server_error");
       await this.sendExecutionError();
     }
   }
