@@ -2,17 +2,21 @@ import AutoWA, { AutoWAError, WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import axios from "axios";
-import * as fs from "fs";
 import FundayBOT from "../FundayBOT";
+import { _groups_ } from "../data/lang";
 
-export default class QuickChat extends Command {
+export default class CommandChild extends Command {
   hide = true;
   aliases = ["qc", "quickchat"];
   description = {
     id: "Membuat stiker QuickChat",
     en: "Make a QuickChat sticker",
   };
-  name = "QuickChat";
+  name = {
+    en: "QuickChat",
+    id: "QuickChat",
+  };
+  group = _groups_["utility"];
 
   constructor(
     autoWA: AutoWA,
@@ -26,7 +30,6 @@ export default class QuickChat extends Command {
     this.params = {
       msg: {
         required: true,
-        type: "string",
         description: {
           en: "The message you want to put in QuickChat",
           id: "Pesan yang ingin kamu masukkan ke Quickchat",
@@ -37,7 +40,6 @@ export default class QuickChat extends Command {
       },
       name: {
         required: false,
-        type: "string",
         description: {
           en: "The name you want to put in QuickChat",
           id: "Nama yang ingin kamu masukkan ke Quickchat",
@@ -48,7 +50,6 @@ export default class QuickChat extends Command {
       },
       imgUrl: {
         required: false,
-        type: "string",
         description: {
           en: "The image URL you want to put in QuickChat avatar",
           id: "URL gambar yang ingin kamu masukkan ke Avatar Quickchat",

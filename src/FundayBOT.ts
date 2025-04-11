@@ -1,21 +1,33 @@
 import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
 import CommandHandler from "./command/handler";
-import { Language } from "./data/lang";
-import * as fs from "fs";
-import { ConfigShema, ConfigValue } from "./types";
+import fs from "fs";
+import { ConfigShema, ConfigValue, UserConfigShema } from "./types";
+import Matcher from "./data/matcher";
+import getSentences, { Language, Replacements } from "./data/lang";
 
 export default class FundayBOT {
   private name: string = "FundayBOT";
-  private autoWA: AutoWA;
+  public autoWA: AutoWA;
   private configPath = "./database/config.json";
+  private userConfigPath = "./database/userConfig.json";
 
   private defaultBotConfig: ConfigShema = {
-    lang: "en",
     reading: false,
   };
 
+  private defaultUserConfig: ConfigShema = {
+    lang: "en",
+    tier: 0,
+    limit: 10,
+    nick: () => "user#" + (this.getUserCount() + 1),
+  };
+
+  public matcher: Matcher;
+
   constructor() {
     this.autoWA = new AutoWA("FundayBOT", { printQR: true });
+
+    this.matcher = new Matcher(this);
   }
 
   async startBot() {
@@ -45,6 +57,8 @@ export default class FundayBOT {
       await msg.react("⌛");
       if (await handler.validate()) await handler.execute();
       await msg.react("");
+    } else {
+      await this.matcher.checkAnsweringMsg(msg);
     }
   }
 
@@ -63,27 +77,28 @@ export default class FundayBOT {
       .map((x) => x.trim());
   }
 
-  validateConfigs(): void {
-    if (!fs.existsSync(this.configPath)) {
+  validateConfigs(path: string): void {
+    if (!fs.existsSync(path)) {
       const data = {};
-      fs.writeFileSync(this.configPath, JSON.stringify(data, null, 2));
+      fs.writeFileSync(path, JSON.stringify(data, null, 2));
     }
   }
 
   getConfigs(): ConfigShema {
-    this.validateConfigs();
+    this.validateConfigs(this.configPath);
 
-    const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
-    const data = JSON.parse(_config) as ConfigShema;
+    try {
+      const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
+      const data = JSON.parse(_config) as ConfigShema;
 
-    return data;
+      return data;
+    } catch (error) {
+      return {};
+    }
   }
 
   setConfig(key: string, value: ConfigValue): void {
-    this.validateConfigs();
-
-    const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
-    const data = JSON.parse(_config) as ConfigShema;
+    const data = this.getConfigs();
 
     data[key] = value;
 
@@ -94,25 +109,83 @@ export default class FundayBOT {
     const data = this.getConfigs();
 
     if (!(key in data)) {
-      this.setConfig(key, this.defaultBotConfig[key]);
+      const value =
+        key in this.defaultBotConfig
+          ? typeof this.defaultBotConfig[key] == "function"
+            ? this.defaultBotConfig[key]()
+            : this.defaultBotConfig[key]
+          : "";
+      this.setConfig(key, value);
       return this.getConfig(key);
     }
 
     return data[key];
   }
 
+  getUserConfigs(): UserConfigShema {
+    this.validateConfigs(this.userConfigPath);
+
+    try {
+      const _config = fs.readFileSync(this.userConfigPath, {
+        encoding: "utf-8",
+      });
+      const data = JSON.parse(_config) as UserConfigShema;
+
+      return data;
+    } catch (error) {
+      return {};
+    }
+  }
+
+  setUserConfig(user: string, key: string, value: ConfigValue): void {
+    const data = this.getUserConfigs();
+
+    if (!data[user]) data[user] = {};
+
+    data[user][key] = value;
+
+    fs.writeFileSync(this.userConfigPath, JSON.stringify(data, null, 2));
+  }
+
+  getUserConfig(user: string, key: string): ConfigValue {
+    const data = this.getUserConfigs();
+
+    if (!(user in data) || !(key in data[user])) {
+      const value =
+        key in this.defaultUserConfig
+          ? typeof this.defaultUserConfig[key] == "function"
+            ? this.defaultUserConfig[key]()
+            : this.defaultUserConfig[key]
+          : "";
+      this.setUserConfig(user, key, value);
+      return this.getUserConfig(user, key);
+    }
+
+    return data[user][key];
+  }
+
   getName() {
     return this.name;
   }
 
-  pickRandom<T>(arr: T[]): T {
-    if (arr.length === 0) return arr[0];
-    return arr[Math.floor(Math.random() * arr.length)];
+  getSentence(
+    user: string,
+    langKey: string,
+    replacements?: Replacements
+  ): string {
+    const idLang = this.getUserConfig(user, "lang") as Language;
+    const sentence = getSentences()[idLang][langKey] || langKey;
+
+    if (!replacements) return sentence;
+
+    return sentence.replace(/{(\w+)}/g, (_, key) => {
+      return typeof replacements[key] !== "undefined"
+        ? String(replacements[key])
+        : `{${key}}`;
+    });
   }
 
-  getRandomInt(min: number, max: number): number {
-    const minCeil = Math.ceil(min);
-    const maxFloor = Math.floor(max);
-    return Math.floor(Math.random() * (maxFloor - minCeil + 1)) + minCeil;
+  getUserCount() {
+    return Object.keys(this.getUserConfigs()).length;
   }
 }

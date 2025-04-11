@@ -1,14 +1,17 @@
-import AutoWA, { AutoWAError, WAutoMessageComplete } from "whatsauto.js";
+import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 import axios from "axios";
 import querystring from "querystring";
-import { CommandGroupEn, CommandGroupId, Language } from "../data/lang";
+import { _groups_ } from "../data/lang";
 
-export default class Simi extends Command {
+export default class CommandChild extends Command {
   aliases = ["simi"];
-  name = "SimSimi";
+  name = {
+    en: "SimSimi",
+    id: "SimSimi",
+  };
   description = {
     id: "Ngobrol sama SimSimi",
     en: "Talk to SimSimi",
@@ -21,14 +24,11 @@ export default class Simi extends Command {
         id: "Teks yang ingin kamu kirim ke SimSimi",
       },
       example: "hello",
-      value: async () => await this.args.join("|"),
+      value: async () => this.args.join("|"),
       default: "",
     },
   };
-  group: Record<Language, CommandGroupEn | CommandGroupId> = {
-    en: "AI",
-    id: "AI",
-  };
+  group = _groups_["ai"];
 
   constructor(
     autoWA: AutoWA,
@@ -43,7 +43,7 @@ export default class Simi extends Command {
   async execute() {
     try {
       const param_text = await this.getParamValue("text");
-      const lc = this.getConfig("lang");
+      const lc = this.getLang();
       const res = await axios.post(
         "https://api.simsimi.vn/v1/simtalk",
         querystring.stringify({

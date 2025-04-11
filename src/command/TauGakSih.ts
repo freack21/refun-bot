@@ -1,21 +1,21 @@
-import AutoWA, { AutoWAError, WAutoMessageComplete } from "whatsauto.js";
+import AutoWA, { WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 import axios from "axios";
-import { CommandGroupEn, CommandGroupId, Language } from "../data/lang";
+import { _groups_ } from "../data/lang";
 
-export default class TauGakSih extends Command {
-  aliases = ["tgs", "taugaksih"];
-  name = "Tau Gak Sih";
+export default class CommandChild extends Command {
+  aliases = ["tgs", "taugaksih", "dyk", "didyouknow"];
+  name = {
+    en: "Did You Know",
+    id: "Tau Gak Sih",
+  };
   description = {
     id: "Dapetin fakta unik / menarik",
     en: "Get a unique / interesting facts",
   };
-  group: Record<Language, CommandGroupEn | CommandGroupId> = {
-    en: "Knowledge",
-    id: "Pengetahuan",
-  };
+  group = _groups_["knowledge"];
 
   constructor(
     autoWA: AutoWA,

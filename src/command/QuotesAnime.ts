@@ -3,20 +3,19 @@ import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 import axios from "axios";
-import querystring from "querystring";
-import { CommandGroupEn, CommandGroupId, Language } from "../data/lang";
+import { _groups_, Language } from "../data/lang";
 
-export default class QuotesAnime extends Command {
+export default class CommandChild extends Command {
   aliases = ["qanime", "quotesanime"];
-  name = "Quotes Anime";
+  name = {
+    en: "Anime Quotes",
+    id: "Quotes Anime",
+  };
   description = {
     id: "Dapetin quotes anime keren secara acak",
     en: "Get a random cool anime quotes",
   };
-  group: Record<Language, CommandGroupEn | CommandGroupId> = {
-    en: "Knowledge",
-    id: "Pengetahuan",
-  };
+  group = _groups_["knowledge"];
 
   constructor(
     autoWA: AutoWA,
@@ -33,19 +32,21 @@ export default class QuotesAnime extends Command {
       const { data: data_list_anime } = await axios.get(
         "https://katanime.vercel.app/api/getlistanime"
       );
-      const my_anime: Record<string, string | number> =
-        this.getBOT().pickRandom(data_list_anime.result);
+      const my_anime: Record<string, string | number> = this.pickRandom(
+        data_list_anime.result
+      );
       const { data: data_quotes } = await axios.get(
         `https://katanime.vercel.app/api/getbyanime?anime=${
           my_anime["anime"]
-        }&page=${this.getBOT().getRandomInt(
+        }&page=${this.getRandomInt(
           1,
           Math.ceil((my_anime["totalKata"] as number) / 15)
         )}`
       );
       if (data_quotes?.sukses) {
-        const my_quotes: Record<string, string | number> =
-          this.getBOT().pickRandom(data_quotes.result);
+        const my_quotes: Record<string, string | number> = this.pickRandom(
+          data_quotes.result
+        );
 
         await this.msg.replyWithText(
           this.getSentence("qanime_result", {
@@ -55,9 +56,9 @@ export default class QuotesAnime extends Command {
             q_en: my_quotes["english"],
           })
         );
-      } else await this.msg.replyWithText(this.getSentence("tgs_empty_msg"));
+      } else await this.msg.replyWithText(this.getSentence("qanime_empty_msg"));
     } catch (err) {
-      this.errorExplanation = this.getSentence("tgs_server_err");
+      this.errorExplanation = this.getSentence("qanime_server_err");
       await this.sendExecutionError();
     }
   }

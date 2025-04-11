@@ -3,9 +3,12 @@ import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 
-export default class Ping extends Command {
+export default class CommandChild extends Command {
   aliases = ["ping"];
-  name = "Ping";
+  name = {
+    en: "Ping",
+    id: "Ping",
+  };
 
   constructor(
     autoWA: AutoWA,

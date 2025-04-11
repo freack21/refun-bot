@@ -5,16 +5,37 @@ import FundayBOT from "../FundayBOT";
 import { _groups_ } from "../data/lang";
 
 export default class CommandChild extends Command {
-  aliases = ["s", "sticker", "stiker"];
+  public tier: number = 1;
+  aliases = ["swm", "stickerwm", "stikerwm"];
   name = {
-    en: "Sticker",
-    id: "Stiker",
+    en: "Sticker + WM",
+    id: "Stiker + WM",
   };
   description = {
-    id: "Buat stiker dari gambar atau video",
-    en: "Make a sticker from an image or video",
+    id: "Buat stiker dari gambar atau video dengan menambahkan deskripsi stiker sendiri (watermark)",
+    en: "Create a sticker from an image or video by adding a description of your own sticker (watermark)",
   };
   params = {
+    author: {
+      required: true,
+      description: {
+        en: "The name of the sticker maker",
+        id: "Nama pembuat stiker",
+      },
+      example: "@fundaybot",
+      value: async () => this.args[0],
+      default: null,
+    },
+    pack: {
+      required: false,
+      description: {
+        en: "Sticker package name",
+        id: "Nama paket stiker",
+      },
+      example: "Fun Stickers",
+      value: async () => this.args[1],
+      default: "sticker",
+    },
     media: {
       required: true,
       description: {
@@ -28,8 +49,8 @@ export default class CommandChild extends Command {
       example: "send or reply to an image or video.",
       value: async () =>
         await this.msg.toSticker({
-          author: "@fundaybot_",
-          pack: "sticker",
+          author: (await this.getParamValue("author")) as string,
+          pack: (await this.getParamValue("pack")) as string,
         }),
       default: null,
     },

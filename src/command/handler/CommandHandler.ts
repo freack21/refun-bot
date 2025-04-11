@@ -1,6 +1,6 @@
 import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
 import path from "path";
-import * as fs from "fs";
+import fs from "fs";
 import Command from "../base";
 import { CommandConstructor } from "../../types";
 import FundayBOT from "../../FundayBOT";

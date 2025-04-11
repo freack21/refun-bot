@@ -1,64 +1,51 @@
+import fs from "fs";
+
 export const _languages_ = ["en", "id"] as const;
 export type Language = (typeof _languages_)[number];
-export type Replacements = Record<string, string | number>;
-export type CommandGroupEn =
-  | "Utility"
-  | "General"
-  | "AI"
-  | "Knowledge"
-  | "Basic";
-export type CommandGroupId =
-  | "Utilitas"
-  | "Umum"
-  | "AI"
-  | "Pengetahuan"
-  | "Dasar";
+export type Sentence = Record<Language, string>;
+export type Sentences = Record<Language, Record<string, string>>;
 
-const lang: Record<Language, Record<string, string>> = {
-  en: {
-    menu: "Hello @{user} 👋\n\n*BOT INFO*\n  🔹 Name : {bot_name}\n  🔹 Prefix : `all`\n\n*USER INFO*\n  🔹 Name : {user_name}\n  🔹 Nickname : {user_nick}\n  🔹 Limit : {user_limit}\n\n{menu}",
-    success_ChangeLanguage: "✅ Success in changing your language preference!",
-    validation:
-      "Please put the _*required*_ argument(s) to execute *{name}* command.",
-    error_command: "_*Error*_ while trying to execute *{name}* command.",
-    args_not_valid: "Your argument for this command is not valid",
-    explanation: "Explanation",
-    valid_arg: "Valid Argument(s)",
-    arguments: "*Argument(s)*:\n{args}",
-    aliases: "*Alias(es)*:\n{alias}",
-    notes: "*Note(s):*\n✅ = required\n❓ = optional",
-    menulist: "  {icon} *{name}* {desc} — _alias(es):_ {alias}",
-    qc_server_error: "The QuickChat maker server refused the connection😥",
-    simi_empty_msg: "Messages cannot be sent😥",
-    simi_server_err: "Server cannot connect to SimSimi🥺",
-    tgs_result: "❓ *Did You Know*\n\n{msg}",
-    tgs_empty_msg: "Info was not found😥",
-    tgs_server_err: "The server cannot get information🥺",
-    qanime_result:
-      '📢 *Quotes Anime*\n\n🗣️ *{char}*\n  🇮🇩 _"{q_id}"_\n  🇬🇧 _"{q_en}"_\n\n🎬 {anime}',
+export type Replacements = Record<string, string | number>;
+export type CommandGroup =
+  | "utility"
+  | "general"
+  | "ai"
+  | "knowledge"
+  | "games"
+  | "basic";
+
+export const _groups_: Record<CommandGroup, Sentence> = {
+  utility: {
+    en: "Utility",
+    id: "Utilitas",
   },
-  id: {
-    menu: "Halo @{user} 👋\n\n*INFO BOT*\n  🔹 Nama : {bot_name}\n  🔹 Prefix : `all`\n\n*INFO USER*\n  🔹 Nama : {user_name}\n  🔹 Nickname : {user_nick}\n  🔹 Limit : {user_limit}\n\n{menu}",
-    success_ChangeLanguage: "✅ Sukses mengubah preferensi bahasa kamu!",
-    validation:
-      "Silahkan menuliskan argumen _*wajib*_ untuk mengeksekusi perintah *{name}*.",
-    error_command: "_*Eror*_ terjadi saat mengeksekusi perintah *{name}*.",
-    args_not_valid: "Argumen kamu untuk perintah ini tidak valid",
-    explanation: "Penjelasan",
-    valid_arg: "Argumen Valid",
-    arguments: "*Argumen*:\n{args}",
-    aliases: "*Alias*:\n{alias}",
-    notes: "*Catatan:*\n✅ = wajib\n❓ = opsional",
-    menulist: "  {icon} *{name}* {desc} — _alias:_ {alias}",
-    qc_server_error: "Server QuickChat Maker menolak koneksi😥",
-    simi_empty_msg: "Pesan tidak dapat dikirim😥",
-    simi_server_err: "Server tidak dapat menghubungkan ke SimSimi🥺",
-    tgs_result: "❓ *Tau Gak Sih*\n\n{msg}",
-    tgs_empty_msg: "Info tidak ditemukan😥",
-    tgs_server_err: "Server tidak dapat mendapatkan informasi🥺",
-    qanime_result:
-      '📢 *Quotes Anime*\n\n🗣️ *{char}*\n  🇮🇩 _"{q_id}"_\n  🇬🇧 _"{q_en}"_\n\n🎬 {anime}',
+  general: {
+    en: "General",
+    id: "Umum",
   },
+  games: {
+    en: "Games",
+    id: "Permainan",
+  },
+  ai: {
+    en: "AI",
+    id: "AI",
+  },
+  knowledge: {
+    en: "Knowledge",
+    id: "Pengetahuan",
+  },
+  basic: {
+    en: "Basic",
+    id: "Dasar",
+  },
+} as const;
+
+const getSentences: () => Sentences = () => {
+  const _sentences = fs.readFileSync("./database/sentences.json", {
+    encoding: "utf-8",
+  });
+  return JSON.parse(_sentences);
 };
 
-export default lang;
+export default getSentences;
