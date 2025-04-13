@@ -57,12 +57,13 @@ export type CommandMessage = "error" | "validation" | "error_cause";
 
 export type UserPoint = Record<string, number>;
 
+export type ConfigCallableValue = (user?: string) => ConfigValue;
 export type ConfigValue =
   | string
   | string[]
   | boolean
   | number
-  | ((user?: string) => ConfigValue)
+  | ConfigCallableValue
   | UserPoint;
 
 export type ConfigShema = Record<string, ConfigValue>;
