@@ -9,6 +9,7 @@ import FundayBOT from "../FundayBOT";
 import { ParamSchema } from "../types";
 import fs from "fs";
 import { _groups_ } from "../data/lang";
+import { join } from "path";
 
 export default class CommandChild extends Command {
   aliases = ["tod", "truth", "dare"];
@@ -55,7 +56,7 @@ export default class CommandChild extends Command {
       dare: 1,
     }[cmd];
     try {
-      const file = fs.readFileSync("./database/tod.json", {
+      const file = fs.readFileSync(join(__dirname, "../../database/tod.json"), {
         encoding: "utf-8",
       });
       let data = JSON.parse(file);

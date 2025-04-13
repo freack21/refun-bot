@@ -2,12 +2,13 @@ import FundayBOT from "../FundayBOT";
 import { ExpectAnswers } from "../types";
 import { IWAutoMessageReceived } from "whatsauto.js";
 import fs from "fs";
+import { join } from "path";
 const compareStrings = require("compare-strings");
 
 export default class Matcher {
   private unAnsweredMsgs: Map<string, Map<string, ExpectAnswers>>;
   private fundayBOT: FundayBOT;
-  private MATCHER_DB_PATH = "./database/matcher.json";
+  private MATCHER_DB_PATH = join(__dirname, "../../database/matcher.json");
 
   constructor(fundayBOT: FundayBOT) {
     this.unAnsweredMsgs = new Map();

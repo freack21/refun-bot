@@ -1,6 +1,7 @@
 import AutoWA, { IWAutoMessageReceived, phoneToJid } from "whatsauto.js";
 import CommandHandler from "./command/handler";
 import fs from "fs";
+import { join } from "path";
 import {
   _limitlist_,
   ConfigShema,
@@ -15,8 +16,8 @@ import { randomUUID } from "crypto";
 export default class FundayBOT {
   private name: string = "FundayBOT";
   public autoWA: AutoWA;
-  private configPath = "./database/config.json";
-  private userConfigPath = "./database/userConfig.json";
+  private configPath = join(__dirname, "../database/config.json");
+  private userConfigPath = join(__dirname, "../database/userConfig.json");
 
   public defaultBotConfig: ConfigShema = {
     reading: false,

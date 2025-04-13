@@ -1,4 +1,5 @@
 import fs from "fs";
+import { join } from "path";
 
 export const _languages_ = ["en", "id"] as const;
 export type Language = (typeof _languages_)[number];
@@ -49,7 +50,7 @@ export const _groups_: Record<CommandGroup, Sentence> = {
 const getSentences: (txt?: string) => Sentences | string = (txt) => {
   if (txt) {
     try {
-      return fs.readFileSync(`./database/${txt}.txt`, {
+      return fs.readFileSync(join(__dirname, `../../database/${txt}.txt`), {
         encoding: "utf-8",
       });
     } catch (error) {
@@ -57,9 +58,12 @@ const getSentences: (txt?: string) => Sentences | string = (txt) => {
     }
   }
   try {
-    const _sentences = fs.readFileSync("./database/sentences.json", {
-      encoding: "utf-8",
-    });
+    const _sentences = fs.readFileSync(
+      join(__dirname, "../../database/sentences.json"),
+      {
+        encoding: "utf-8",
+      }
+    );
     return JSON.parse(_sentences);
   } catch (error) {
     return {};
