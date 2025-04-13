@@ -1,9 +1,16 @@
-import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
+import AutoWA, { IWAutoMessageReceived, phoneToJid } from "whatsauto.js";
 import CommandHandler from "./command/handler";
 import fs from "fs";
-import { ConfigShema, ConfigValue, UserConfigShema } from "./types";
+import {
+  _limitlist_,
+  ConfigShema,
+  ConfigValue,
+  UserConfigShema,
+  UserPoint,
+} from "./types";
 import Matcher from "./data/matcher";
-import getSentences, { Language, Replacements } from "./data/lang";
+import getSentences, { Language, Replacements, Sentences } from "./data/lang";
+import { randomUUID } from "crypto";
 
 export default class FundayBOT {
   private name: string = "FundayBOT";
@@ -11,15 +18,28 @@ export default class FundayBOT {
   private configPath = "./database/config.json";
   private userConfigPath = "./database/userConfig.json";
 
-  private defaultBotConfig: ConfigShema = {
+  public defaultBotConfig: ConfigShema = {
     reading: false,
+    admin: [],
   };
 
-  private defaultUserConfig: ConfigShema = {
+  public defaultUserConfig: ConfigShema = {
     lang: "en",
     tier: 0,
-    limit: 10,
-    nick: () => "user#" + (this.getUserCount() + 1),
+    duration: () => Date.now() + 999 * 24 * 60 * 60 * 1000,
+    limit: (user) => {
+      const tier = this.getUserConfig(user!, "tier") as number;
+      return _limitlist_[tier];
+    },
+    limit_last_used: () =>
+      new Date(Date.now() + 7 * 60 * 60 * 1000)
+        .toISOString()
+        .split("T")[0]
+        .split("-")
+        .pop()!,
+    nick: () => "user#" + randomUUID().slice(0, 5),
+    individual_point: {},
+    group_point: {},
   };
 
   public matcher: Matcher;
@@ -31,6 +51,21 @@ export default class FundayBOT {
   }
 
   async startBot() {
+    this.autoWA.event.onConnected(async () => {
+      await this.receivedMessageHandler({
+        quotedMessage: null,
+        hasMedia: false,
+        mediaType: "",
+        isGroup: false,
+        isStory: false,
+        isReaction: false,
+        text: "helloworld",
+        author: this.getJid(),
+        from: this.getJid(),
+        read: async () => {},
+        react: async () => {},
+      } as unknown as IWAutoMessageReceived);
+    });
     this.autoWA.event.onPrivateMessageReceived(
       this.receivedMessageHandler.bind(this)
     );
@@ -55,7 +90,7 @@ export default class FundayBOT {
     )[0];
     if (handler) {
       await msg.react("⌛");
-      if (await handler.validate()) await handler.execute();
+      if (await handler.validate()) await handler.run();
       await msg.react("");
     } else {
       await this.matcher.checkAnsweringMsg(msg);
@@ -138,6 +173,9 @@ export default class FundayBOT {
   }
 
   setUserConfig(user: string, key: string, value: ConfigValue): void {
+    user = phoneToJid({
+      from: user,
+    });
     const data = this.getUserConfigs();
 
     if (!data[user]) data[user] = {};
@@ -154,7 +192,7 @@ export default class FundayBOT {
       const value =
         key in this.defaultUserConfig
           ? typeof this.defaultUserConfig[key] == "function"
-            ? this.defaultUserConfig[key]()
+            ? this.defaultUserConfig[key](user)
             : this.defaultUserConfig[key]
           : "";
       this.setUserConfig(user, key, value);
@@ -174,7 +212,21 @@ export default class FundayBOT {
     replacements?: Replacements
   ): string {
     const idLang = this.getUserConfig(user, "lang") as Language;
-    const sentence = getSentences()[idLang][langKey] || langKey;
+    const sentence = (getSentences() as Sentences)[idLang][langKey] || langKey;
+
+    if (!replacements) return sentence;
+
+    return sentence.replace(/{(\w+)}/g, (_, key) => {
+      return typeof replacements[key] !== "undefined"
+        ? String(replacements[key])
+        : `{${key}}`;
+    });
+  }
+
+  getTxt(user: string, langKey: string, replacements?: Replacements): string {
+    const idLang = this.getUserConfig(user, "lang") as Language;
+    const sentence =
+      (getSentences(langKey + "-" + idLang) as string) || langKey;
 
     if (!replacements) return sentence;
 
@@ -187,5 +239,23 @@ export default class FundayBOT {
 
   getUserCount() {
     return Object.keys(this.getUserConfigs()).length;
+  }
+
+  updateUserPoint(from: string, user: string, point: number) {
+    const type = from.includes("@g.us") ? "group" : "individual";
+    const configKey = type + "_point";
+
+    const data = this.getUserConfig(user, configKey) as UserPoint;
+
+    if (!data[from]) data[from] = 0;
+    data[from] += point;
+
+    this.setUserConfig(user, configKey, data);
+  }
+
+  getJid() {
+    return phoneToJid({
+      from: this.autoWA.sock.user?.id!,
+    });
   }
 }

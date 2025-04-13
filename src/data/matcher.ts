@@ -114,6 +114,13 @@ export default class Matcher {
             myTopic && this.setUnAnsweredMsg(room, topic, myTopic);
           }
 
+          expectAnswers.reward &&
+            this.fundayBOT.updateUserPoint(
+              msg.from,
+              msg.author,
+              expectAnswers.reward
+            );
+
           let text = expectAnswers.right_msg;
           if (myTopic?.answers.length) {
             text += this.fundayBOT.getSentence(msg.author, "answer_remaining", {

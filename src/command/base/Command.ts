@@ -3,7 +3,13 @@ import AutoWA, {
   IWAutoMessageReceived,
   phoneToJid,
 } from "whatsauto.js";
-import { ConfigValue, ParamSchema } from "../../types";
+import {
+  _limitlist_,
+  _tierlist_,
+  ConfigValue,
+  ParamSchema,
+  UserTierData,
+} from "../../types";
 import CommandHandler from "../handler/CommandHandler";
 import { _groups_, Language, Replacements, Sentence } from "../../data/lang";
 import FundayBOT from "../../FundayBOT";
@@ -26,6 +32,9 @@ export default class Command {
   public errorExplanation: string = "";
   public expectedArgs: string = "";
   public mustBeGroup: boolean = false;
+  public mustBePrivate: boolean = false;
+  public adminOnly: boolean = false;
+  public cost: number = 0;
 
   protected autoWA: AutoWA;
   protected msg: IWAutoMessageReceived;
@@ -57,19 +66,49 @@ export default class Command {
     throw new Error("execute is not implemented");
   }
 
+  async run() {
+    await this.execute();
+
+    if (this.cost) {
+      this.updateUserLimit(-this.cost);
+    }
+  }
+
   async validate() {
+    if (this.adminOnly && !this.isAdmin()) {
+      await this.sendMustBeAdmin();
+      return false;
+    }
+
     if (this.mustBeGroup && !this.msg.isGroup) {
       await this.sendMustBeGroup();
       return false;
     }
 
-    if (this.tier != 0 && !(this.getUserConfig("tier") as boolean)) {
+    if (this.mustBePrivate && this.msg.isGroup) {
+      await this.sendMustBePrivate();
+      return false;
+    }
+
+    if (this.tier > this.getUserTier()) {
       await this.sendMustBePremium();
       return false;
     }
 
+    if (this.cost && this.getUserLimit() - this.cost < 0) {
+      await this.sendNotEnoughLimit();
+      return false;
+    }
+
     for (const key in this.params) {
-      if (!(await this.getParamValue(key))) {
+      const param = await this.getParamValue(key);
+      if (
+        ((!this.params[key].typedata ||
+          this.params[key].typedata == "single") &&
+          !param &&
+          param !== null) ||
+        (this.params[key].typedata == "array" && !(param as []).length)
+      ) {
         if (this.params[key].required) {
           await this.sendValidationError();
           return false;
@@ -92,6 +131,9 @@ export default class Command {
     let text = this.getSentence("error_command", {
       name: this.getName(),
     });
+    if (with_args_error)
+      this.errorExplanation = this.getSentence("args_not_valid");
+
     this.errorExplanation &&
       (text += `\n\n*${this.getSentence("explanation")}:*\n${
         this.errorExplanation
@@ -106,6 +148,7 @@ export default class Command {
     let validationMsg = this.getSentence("validation", {
       name: this.getName(),
     });
+    validationMsg += this.getExampleMessage();
     validationMsg += this.getArgsMessage();
     validationMsg += this.getAliasesMessage();
 
@@ -208,11 +251,36 @@ export default class Command {
     );
   }
 
+  async sendMustBePrivate() {
+    await this.msg.replyWithText(
+      this.getSentence("must_be_private", {
+        cmd: this.getName(),
+      })
+    );
+  }
+
   async sendMustBePremium() {
     await this.msg.replyWithText(
       this.getSentence("must_be_premium", {
         cmd: this.getName(),
-        tier: this.tier,
+        tier: _tierlist_[this.tier],
+      })
+    );
+  }
+
+  async sendMustBeAdmin() {
+    await this.msg.replyWithText(
+      this.getSentence("must_be_admin", {
+        cmd: this.getName(),
+      })
+    );
+  }
+
+  async sendNotEnoughLimit() {
+    await this.msg.replyWithText(
+      this.getSentence("not_enough_limit", {
+        cmd: this.getName(),
+        cost: this.cost,
       })
     );
   }
@@ -313,6 +381,7 @@ export default class Command {
       msg,
       answers,
       reward,
+      duration,
       right_msg: this.getSentence("answer_right", {
         topic: this.getName(),
         reward,
@@ -329,8 +398,81 @@ export default class Command {
       timeout_msg: this.getSentence("answer_timeout", {
         topic: this.getName(),
       }),
-      duration,
       createdAt: Date.now(),
     });
+  }
+
+  getTxt(langKey: string, replacements?: Replacements) {
+    return this.fundayBOT.getTxt(this.msg.author, langKey, replacements);
+  }
+
+  updateUserPoint(point: number) {
+    return this.fundayBOT.updateUserPoint(
+      this.msg.from,
+      this.msg.author,
+      point
+    );
+  }
+
+  isAdmin() {
+    return (
+      (this.getConfig("admin") as string[]).filter(
+        (d) => phoneToJid({ from: d }) == this.msg.author
+      ).length > 0
+    );
+  }
+
+  getUserTierData(): UserTierData {
+    const tier = this.getUserConfig("tier") as number;
+    const duration = this.getUserConfig("duration") as number;
+    const limit = this.getUserConfig("limit") as number;
+
+    if (Date.now() > duration) {
+      this.setUserConfig("tier", 0);
+      this.setUserConfig("limit", _limitlist_[0]);
+      this.setUserConfig(
+        "duration",
+        (this.fundayBOT.defaultUserConfig["duration"] as Function)()
+      );
+
+      return this.getUserTierData();
+    }
+
+    return {
+      duration,
+      tier,
+      user: this.msg.author,
+      limit,
+    };
+  }
+
+  getUserTier(): number {
+    return this.getUserTierData().tier as number;
+  }
+
+  getUserLimit(): number {
+    const limit = this.getUserTierData().limit;
+    const limit_last_used = this.getUserConfig("limit_last_used") as string;
+    const now = new Date(Date.now() + 7 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0]
+      .split("-")
+      .pop()!;
+
+    if (limit_last_used != now) {
+      const new_limit = _limitlist_[this.getUserTier()];
+      this.setUserConfig("limit", new_limit);
+      this.setUserConfig("limit_last_used", now);
+      return new_limit;
+    }
+
+    return limit as number;
+  }
+
+  updateUserLimit(much: number = 0) {
+    let limit = this.getUserLimit();
+    limit += much;
+    this.setUserConfig("limit", limit);
+    return limit;
   }
 }

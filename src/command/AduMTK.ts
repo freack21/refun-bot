@@ -26,6 +26,7 @@ export default class CommandChild extends Command {
       default: 1,
     },
   };
+  public cost: number = 1;
 
   constructor(
     autoWA: AutoWA,

@@ -46,16 +46,19 @@ export default class CommandChild extends Command {
         en: "image / video",
         id: "gambar / video",
       },
-      example: "send or reply to an image or video.",
-      value: async () =>
-        await this.msg.toSticker({
+      value: async () => {
+        const [sticker, hasMedia] = await this.msg.toSticker({
           author: (await this.getParamValue("author")) as string,
           pack: (await this.getParamValue("pack")) as string,
-        }),
+        });
+        if (!hasMedia) return undefined;
+        return sticker;
+      },
       default: null,
     },
   };
   group = _groups_["utility"];
+  public cost: number = 2;
 
   constructor(
     autoWA: AutoWA,
@@ -70,6 +73,8 @@ export default class CommandChild extends Command {
   async execute() {
     const param_media = await this.getParamValue("media");
 
-    await this.msg.replyWithSticker(param_media as Buffer);
+    await this.msg.replyWithSticker(param_media as Buffer, {
+      failMsg: this.getSentence("sticker_error"),
+    });
   }
 }

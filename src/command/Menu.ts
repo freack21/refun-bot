@@ -2,6 +2,7 @@ import AutoWA, { phoneToJid, WAutoMessageComplete } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
+import { _tierlist_ } from "../types";
 
 export default class CommandChild extends Command {
   aliases = ["menu", "ls"];
@@ -25,7 +26,7 @@ export default class CommandChild extends Command {
   }
 
   async getListCommand(handlers: Command[]): Promise<Record<string, string[]>> {
-    const grouped: Record<string, string[]> = {};
+    const groupedCommands: Record<string, string[]> = {};
     const lang = this.getLang();
 
     const tierIcon: Record<number, string> = {
@@ -34,7 +35,10 @@ export default class CommandChild extends Command {
     };
 
     handlers
-      .filter((handler) => !handler.hide)
+      .filter((handler) => {
+        if (!this.isAdmin()) return !handler.hide && !handler.adminOnly;
+        return !handler.hide;
+      })
       .forEach((handler) => {
         const group =
           handler.group[lang] ||
@@ -43,20 +47,32 @@ export default class CommandChild extends Command {
             id: "Lainnya",
           }[lang];
 
-        const line = this.getSentence("menulist", {
-          name: handler.name[lang],
-          desc: handler.description[lang]
-            ? "| " + handler.description[lang]
-            : "",
-          alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
-          icon: tierIcon[handler.tier] || "🔸",
-        });
+        let line = "";
+        if (handler.cost)
+          line = this.getSentence("menulist_cost", {
+            name: handler.name[lang],
+            desc: handler.description[lang]
+              ? "| " + handler.description[lang]
+              : "",
+            alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
+            icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
+            cost: handler.cost,
+          });
+        else
+          line = this.getSentence("menulist", {
+            name: handler.name[lang],
+            desc: handler.description[lang]
+              ? "| " + handler.description[lang]
+              : "",
+            alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
+            icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
+          });
 
-        if (!grouped[group]) grouped[group] = [];
-        grouped[group].push(line);
+        if (!groupedCommands[group]) groupedCommands[group] = [];
+        groupedCommands[group].push(line);
       });
 
-    return grouped;
+    return groupedCommands;
   }
 
   async execute() {
@@ -65,12 +81,15 @@ export default class CommandChild extends Command {
     const groupedCommands = await this.getListCommand(handlers);
 
     let menu = Object.entries(groupedCommands)
+      .sort((a, b) => a[0].toLowerCase().localeCompare(b[0].toLowerCase()))
       .map(([group, commands]) => {
         return `📂 *${group.toUpperCase()}*\n${commands.join("\n")}`;
       })
       .join("\n\n");
 
-    const text = this.getSentence("menu", {
+    const userTier = this.getUserTierData();
+
+    const text = this.getTxt("menu", {
       user: phoneToJid({
         from: this.msg.author,
         reverse: true,
@@ -78,10 +97,13 @@ export default class CommandChild extends Command {
       menu,
       bot_name: this.getBOT().getName(),
       user_name: this.msg.pushName || "",
-      cmd_count: handlers.length,
-      user_tier: (this.getUserConfig("tier") as number) || 0,
-      user_limit: this.getUserConfig("limit") as number,
-      user_nick: this.getUserConfig("nick") as number,
+      cmd_count: handlers.filter((handler) => !handler.hide).length,
+      user_tier: _tierlist_[userTier.tier as number],
+      user_tier_duration: Math.ceil(
+        ((userTier.duration as number) - Date.now()) / (1000 * 60 * 60 * 24)
+      ),
+      user_limit: this.getUserLimit(),
+      user_nick: this.getUserConfig("nick") as string,
     });
 
     await this.msg.replyWithText(text, { mentions: [this.msg.author] });

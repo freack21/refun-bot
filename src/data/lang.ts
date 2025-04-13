@@ -12,6 +12,7 @@ export type CommandGroup =
   | "ai"
   | "knowledge"
   | "games"
+  | "admin"
   | "basic";
 
 export const _groups_: Record<CommandGroup, Sentence> = {
@@ -39,13 +40,30 @@ export const _groups_: Record<CommandGroup, Sentence> = {
     en: "Basic",
     id: "Dasar",
   },
+  admin: {
+    en: "Administrator",
+    id: "Administrator",
+  },
 } as const;
 
-const getSentences: () => Sentences = () => {
-  const _sentences = fs.readFileSync("./database/sentences.json", {
-    encoding: "utf-8",
-  });
-  return JSON.parse(_sentences);
+const getSentences: (txt?: string) => Sentences | string = (txt) => {
+  if (txt) {
+    try {
+      return fs.readFileSync(`./database/${txt}.txt`, {
+        encoding: "utf-8",
+      });
+    } catch (error) {
+      return "";
+    }
+  }
+  try {
+    const _sentences = fs.readFileSync("./database/sentences.json", {
+      encoding: "utf-8",
+    });
+    return JSON.parse(_sentences);
+  } catch (error) {
+    return {};
+  }
 };
 
 export default getSentences;

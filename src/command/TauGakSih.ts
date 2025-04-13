@@ -16,6 +16,7 @@ export default class CommandChild extends Command {
     en: "Get a unique / interesting facts",
   };
   group = _groups_["knowledge"];
+  public cost: number = 1;
 
   constructor(
     autoWA: AutoWA,

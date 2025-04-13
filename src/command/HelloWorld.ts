@@ -5,10 +5,10 @@ import FundayBOT from "../FundayBOT";
 
 export default class CommandChild extends Command {
   public hide: boolean = true;
-  aliases = ["ping"];
+  aliases = ["helloworld"];
   name = {
-    en: "Ping",
-    id: "Ping",
+    en: "Hello World!",
+    id: "Hello World!",
   };
 
   constructor(
@@ -22,6 +22,12 @@ export default class CommandChild extends Command {
   }
 
   async execute() {
-    await this.msg.replyWithText("Pong!");
+    const admins = this.getConfig("admin") as string[];
+    for (const admin of admins) {
+      await this.autoWA.sendText({
+        to: admin,
+        text: "Hello World!",
+      });
+    }
   }
 }

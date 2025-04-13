@@ -15,6 +15,26 @@ export default class CommandChild extends Command {
     en: "Change the language preferences used by the bot",
   };
 
+  expectedArgs = _languages_.map((d) => "`" + d + "`").join(", ");
+  params = {
+    lang: {
+      required: true,
+      description: {
+        en: "Language code you want to choose as preference",
+        id: "Kode bahasa yang ingin kamu pilih sebagai preferensi",
+      },
+      example: "id",
+      value: async () => {
+        return this.args[0];
+      },
+      validate: async () => {
+        const lang = await this.params.lang.value();
+        return typeof lang == "string" && this.isValidLanguage(lang);
+      },
+      default: null,
+    },
+  };
+
   constructor(
     autoWA: AutoWA,
     msg: WAutoMessageComplete,
@@ -23,28 +43,6 @@ export default class CommandChild extends Command {
     fundayBOT: FundayBOT
   ) {
     super(autoWA, msg, args, commandHandler, fundayBOT);
-
-    this.errorExplanation = this.getSentence("args_not_valid");
-    this.expectedArgs = _languages_.map((d) => "`" + d + "`").join(", ");
-
-    this.params = {
-      lang: {
-        required: true,
-        description: {
-          en: "Language code you want to choose as preference",
-          id: "Kode bahasa yang ingin kamu pilih sebagai preferensi",
-        },
-        example: "id",
-        value: async () => {
-          return args[0];
-        },
-        validate: async () => {
-          const lang = await this.params.lang.value();
-          return typeof lang == "string" && this.isValidLanguage(lang);
-        },
-        default: null,
-      },
-    };
   }
 
   isValidLanguage(lang: string): lang is Language {

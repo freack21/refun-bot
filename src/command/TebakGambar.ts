@@ -17,6 +17,7 @@ export default class CommandChild extends Command {
     en: "Play guess the picture game",
   };
   group = _groups_["games"];
+  public cost: number = 1;
 
   constructor(
     autoWA: AutoWA,

@@ -33,6 +33,7 @@ export default class CommandChild extends Command {
   };
   public mustBeGroup: boolean = true;
   group = _groups_["games"];
+  public cost: number = 2;
 
   constructor(
     autoWA: AutoWA,
