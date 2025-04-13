@@ -1,0 +1,14 @@
+👋 Halo @{user}
+
+🤖 *INFO BOT*
+  🔹 *Nama:* {bot_name}
+  🔹 *Prefix:* `all`
+  🔹 *Jumlah Perintah:* {cmd_count}
+
+👤 *INFO USER*
+  🔹 *Nama:* {user_name}
+  🔹 *Nickname:* `{user_nick}`
+  🔹 *Tier:* `{user_tier}` ({user_tier_duration}h)
+  🔹 *Limit:* {user_limit}
+
+{menu}

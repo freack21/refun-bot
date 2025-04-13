@@ -1,0 +1,14 @@
+👋 Hello @{user}
+
+🤖 *BOT INFO*
+  🔹 *Name:* {bot_name}
+  🔹 *Prefix:* `all`
+  🔹 *Command Count:* {cmd_count}
+
+👤 *USER INFO*
+  🔹 *Name:* {user_name}
+  🔹 *Nickname:* `{user_nick}`
+  🔹 *Tier:* `{user_tier}` ({user_tier_duration}d)
+  🔹 *Limit:* {user_limit}
+
+{menu}
