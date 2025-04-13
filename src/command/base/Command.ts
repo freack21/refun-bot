@@ -1,8 +1,4 @@
-import AutoWA, {
-  IWAutoMessage,
-  IWAutoMessageReceived,
-  phoneToJid,
-} from "whatsauto.js";
+import AutoWA, { IWAutoMessage, phoneToJid } from "whatsauto.js";
 import {
   _limitlist_,
   _tierlist_,
@@ -37,7 +33,7 @@ export default class Command {
   public cost: number = 0;
 
   protected autoWA: AutoWA;
-  protected msg: IWAutoMessageReceived;
+  protected msg: IWAutoMessage;
   protected args: string[];
   protected commandHandler: CommandHandler;
 
@@ -45,7 +41,7 @@ export default class Command {
 
   constructor(
     autoWA: AutoWA,
-    msg: IWAutoMessageReceived,
+    msg: IWAutoMessage,
     args: string[],
     commandHandler: CommandHandler,
     fundayBOT: FundayBOT

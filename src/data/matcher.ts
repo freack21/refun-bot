@@ -1,9 +1,9 @@
 import FundayBOT from "../FundayBOT";
 import { ExpectAnswers } from "../types";
-import { IWAutoMessageReceived } from "whatsauto.js";
+import { IWAutoMessage } from "whatsauto.js";
 import fs from "fs";
 import { join } from "path";
-const compareStrings = require("compare-strings");
+import compareStrings from "compare-strings";
 
 export default class Matcher {
   private unAnsweredMsgs: Map<string, Map<string, ExpectAnswers>>;
@@ -82,7 +82,7 @@ export default class Matcher {
     this.saveState();
   }
 
-  async checkAnsweringMsg(msg: IWAutoMessageReceived) {
+  async checkAnsweringMsg(msg: IWAutoMessage) {
     for (const [room, topicsMap] of this.unAnsweredMsgs.entries()) {
       if (msg.from != room) continue;
 

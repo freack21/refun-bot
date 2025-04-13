@@ -1,4 +1,4 @@
-import AutoWA, { IWAutoMessageReceived, phoneToJid } from "whatsauto.js";
+import AutoWA, { IWAutoMessage, phoneToJid } from "whatsauto.js";
 import CommandHandler from "./command/handler";
 import fs from "fs";
 import { join } from "path";
@@ -65,7 +65,7 @@ export default class FundayBOT {
         from: this.getJid(),
         read: async () => {},
         react: async () => {},
-      } as unknown as IWAutoMessageReceived);
+      } as unknown as IWAutoMessage);
     });
     this.autoWA.event.onPrivateMessageReceived(
       this.receivedMessageHandler.bind(this)
@@ -77,7 +77,7 @@ export default class FundayBOT {
     await this.autoWA.initialize();
   }
 
-  async receivedMessageHandler(msg: IWAutoMessageReceived) {
+  async receivedMessageHandler(msg: IWAutoMessage) {
     if (this.getConfig("reading") as boolean) await msg.read();
 
     const msgText = msg.text || "";

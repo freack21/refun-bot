@@ -4,12 +4,16 @@ import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
 
 export default class CommandChild extends Command {
-  public hide: boolean = true;
-  aliases = ["helloworld"];
+  aliases = [""];
   name = {
-    en: "Hello World!",
-    id: "Hello World!",
+    en: "",
+    id: "",
   };
+  description = {
+    id: "",
+    en: "",
+  };
+  params = {};
 
   constructor(
     autoWA: AutoWA,
@@ -21,13 +25,5 @@ export default class CommandChild extends Command {
     super(autoWA, msg, args, commandHandler, fundayBOT);
   }
 
-  async execute() {
-    const admins = this.getConfig("admin") as string[];
-    for (const admin of admins) {
-      await this.autoWA.sendText({
-        to: admin,
-        text: "Hello World!",
-      });
-    }
-  }
+  async execute() {}
 }

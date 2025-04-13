@@ -1,4 +1,4 @@
-import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
+import AutoWA, { IWAutoMessage } from "whatsauto.js";
 import path from "path";
 import fs from "fs";
 import Command from "../base";
@@ -7,13 +7,13 @@ import FundayBOT from "../../FundayBOT";
 
 export default class CommandHandler {
   private autoWA: AutoWA;
-  private msg: IWAutoMessageReceived;
+  private msg: IWAutoMessage;
   private args: string[];
   private fundayBOT: FundayBOT;
 
   constructor(
     autoWA: AutoWA,
-    msg: IWAutoMessageReceived,
+    msg: IWAutoMessage,
     args: string[],
     fundayBOT: FundayBOT
   ) {

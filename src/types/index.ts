@@ -1,4 +1,4 @@
-import AutoWA, { IWAutoMessageReceived } from "whatsauto.js";
+import AutoWA, { IWAutoMessage } from "whatsauto.js";
 import Command from "../command/base";
 import CommandHandler from "../command/handler";
 import FundayBOT from "../FundayBOT";
@@ -46,7 +46,7 @@ export interface ParamSchema {
 export interface CommandConstructor {
   new (
     autoWA: AutoWA,
-    msg: IWAutoMessageReceived,
+    msg: IWAutoMessage,
     args: string[],
     handler: CommandHandler,
     fundayBOT: FundayBOT

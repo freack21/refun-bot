@@ -1,4 +1,4 @@
-import AutoWA, { phoneToJid, WAutoMessageComplete } from "whatsauto.js";
+import AutoWA, { phoneToJid, IWAutoMessage } from "whatsauto.js";
 import Command from "./base";
 import CommandHandler from "./handler";
 import FundayBOT from "../FundayBOT";
@@ -17,7 +17,7 @@ export default class CommandChild extends Command {
 
   constructor(
     autoWA: AutoWA,
-    msg: WAutoMessageComplete,
+    msg: IWAutoMessage,
     args: string[],
     commandHandler: CommandHandler,
     fundayBOT: FundayBOT
