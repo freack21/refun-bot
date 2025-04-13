@@ -19,7 +19,8 @@ export default class CommandChild extends Command {
     text: {
       required: true,
       default: null,
-      value: async () => this.args.join("|") || this.msg.quotedMessage?.text,
+      value: async () =>
+        this.args.length ? this.args.join("|") : this.msg.quotedMessage?.text,
       description: {
         id: "Teks yang akan diubah",
         en: "The text to be changed",
