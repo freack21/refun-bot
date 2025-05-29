@@ -10,19 +10,25 @@ import {
   UserPoint,
 } from "./types";
 import Matcher from "./data/matcher";
-import getSentences, { Language, Replacements, Sentences } from "./data/lang";
+import getSentence, {
+  Language,
+  Replacements,
+  Sentences,
+  setSentences,
+} from "./data/lang";
 import { randomUUID } from "crypto";
+import { DB } from "./data/firebase";
 
 export default class FundayBOT {
   private name: string = "FundayBOT";
   public autoWA: AutoWA;
-  private configPath = join(__dirname, "../database/config.json");
-  private userConfigPath = join(__dirname, "../database/userConfig.json");
 
   public defaultBotConfig: ConfigShema = {
     reading: false,
     admin: [],
   };
+  private _botConfig_: ConfigShema = {};
+  private _userConfig_: UserConfigShema = {};
 
   public defaultUserConfig: ConfigShema = {
     lang: "en",
@@ -52,7 +58,11 @@ export default class FundayBOT {
   }
 
   async startBot() {
-    this.autoWA.event.onConnected(async () => {
+    await setSentences();
+    await this.setConfigs();
+    await this.setUserConfigs();
+
+    this.autoWA.on("connected", async () => {
       await this.receivedMessageHandler({
         quotedMessage: null,
         hasMedia: false,
@@ -67,10 +77,14 @@ export default class FundayBOT {
         react: async () => {},
       } as unknown as IWAutoMessage);
     });
-    this.autoWA.event.onPrivateMessageReceived(
+
+    this.autoWA.on(
+      "private-message-received",
       this.receivedMessageHandler.bind(this)
     );
-    this.autoWA.event.onGroupMessageReceived(
+
+    this.autoWA.on(
+      "group-message-received",
       this.receivedMessageHandler.bind(this)
     );
 
@@ -93,6 +107,7 @@ export default class FundayBOT {
       await msg.react("⌛");
       if (await handler.validate()) await handler.run();
       await msg.react("");
+      await msg.react("");
     } else {
       await this.matcher.checkAnsweringMsg(msg);
     }
@@ -113,32 +128,28 @@ export default class FundayBOT {
       .map((x) => x.trim());
   }
 
-  validateConfigs(path: string): void {
-    if (!fs.existsSync(path)) {
-      const data = {};
-      fs.writeFileSync(path, JSON.stringify(data, null, 2));
-    }
-  }
-
-  getConfigs(): ConfigShema {
-    this.validateConfigs(this.configPath);
-
+  async setConfigs(): Promise<ConfigShema> {
     try {
-      const _config = fs.readFileSync(this.configPath, { encoding: "utf-8" });
-      const data = JSON.parse(_config) as ConfigShema;
+      const snapshot = await DB.collection("botConfig").doc("config").get();
+      const data = snapshot.data() ?? {};
 
-      return data;
+      this._botConfig_ = data as ConfigShema;
+      return this._botConfig_;
     } catch (error) {
       return {};
     }
   }
 
-  setConfig(key: string, value: ConfigValue): void {
-    const data = this.getConfigs();
+  getConfigs(): ConfigShema {
+    return this._botConfig_;
+  }
 
+  async setConfig(key: string, value: ConfigValue): Promise<void> {
+    const data: ConfigShema = {};
     data[key] = value;
 
-    fs.writeFileSync(this.configPath, JSON.stringify(data, null, 2));
+    await DB.collection("botConfig").doc("config").update(data);
+    await this.setConfigs();
   }
 
   getConfig(key: string): ConfigValue {
@@ -151,39 +162,51 @@ export default class FundayBOT {
             ? this.defaultBotConfig[key]()
             : this.defaultBotConfig[key]
           : "";
-      this.setConfig(key, value);
-      return this.getConfig(key);
+      return value;
     }
 
     return data[key];
   }
 
-  getUserConfigs(): UserConfigShema {
-    this.validateConfigs(this.userConfigPath);
-
+  async setUserConfigs(): Promise<UserConfigShema> {
     try {
-      const _config = fs.readFileSync(this.userConfigPath, {
-        encoding: "utf-8",
-      });
-      const data = JSON.parse(_config) as UserConfigShema;
+      const snapshot = await DB.collection("userConfig").get();
+      const docs = snapshot.docs;
 
-      return data;
+      const result: Partial<UserConfigShema> = {};
+
+      await Promise.all(
+        docs.map(async (doc) => {
+          const user = doc.id;
+          const data = doc.data();
+          result[user] = data ?? {};
+        })
+      );
+
+      this._userConfig_ = result as UserConfigShema;
+      return this._userConfig_;
     } catch (error) {
       return {};
     }
   }
 
-  setUserConfig(user: string, key: string, value: ConfigValue): void {
+  getUserConfigs(): UserConfigShema {
+    return this._userConfig_;
+  }
+
+  async setUserConfig(
+    user: string,
+    key: string,
+    value: ConfigValue
+  ): Promise<void> {
     user = phoneToJid({
       from: user,
     });
-    const data = this.getUserConfigs();
+    const data: ConfigShema = {};
+    data[key] = value;
 
-    if (!data[user]) data[user] = {};
-
-    data[user][key] = value;
-
-    fs.writeFileSync(this.userConfigPath, JSON.stringify(data, null, 2));
+    await DB.collection("userConfig").doc(user).update(data);
+    await this.setUserConfigs();
   }
 
   getUserConfig(user: string, key: string): ConfigValue {
@@ -196,8 +219,7 @@ export default class FundayBOT {
             ? this.defaultUserConfig[key](user)
             : this.defaultUserConfig[key]
           : "";
-      this.setUserConfig(user, key, value);
-      return this.getUserConfig(user, key);
+      return value;
     }
 
     return data[user][key];
@@ -207,27 +229,13 @@ export default class FundayBOT {
     return this.name;
   }
 
-  getSentence(
+  async getSentence(
     user: string,
     langKey: string,
     replacements?: Replacements
-  ): string {
+  ): Promise<string> {
     const idLang = this.getUserConfig(user, "lang") as Language;
-    const sentence = (getSentences() as Sentences)[idLang][langKey] || langKey;
-
-    if (!replacements) return sentence;
-
-    return sentence.replace(/{(\w+)}/g, (_, key) => {
-      return typeof replacements[key] !== "undefined"
-        ? String(replacements[key])
-        : `{${key}}`;
-    });
-  }
-
-  getTxt(user: string, langKey: string, replacements?: Replacements): string {
-    const idLang = this.getUserConfig(user, "lang") as Language;
-    const sentence =
-      (getSentences(langKey + "-" + idLang) as string) || langKey;
+    const sentence = await getSentence(idLang, langKey);
 
     if (!replacements) return sentence;
 

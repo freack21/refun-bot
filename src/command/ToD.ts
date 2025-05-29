@@ -77,14 +77,14 @@ export default class CommandChild extends Command {
           const dot = td[idx].toLowerCase();
           const dataTod = data[dot];
 
-          text = this.getSentence("tod_result", {
+          text = await this.getSentence("tod_result", {
             user: mentionUser,
             td: td[idx],
             quest: dataTod[this.getRandomInt(0, dataTod.length - 1)],
           });
         } else {
           const dataTod = data[cmd];
-          text = this.getSentence("tod_result", {
+          text = await this.getSentence("tod_result", {
             user: mentionUser,
             td: td[type],
             quest: dataTod[this.getRandomInt(0, dataTod.length - 1)],

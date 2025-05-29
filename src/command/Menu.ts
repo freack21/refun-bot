@@ -34,43 +34,45 @@ export default class CommandChild extends Command {
       2: "🌟",
     };
 
-    handlers
-      .filter((handler) => {
-        if (!this.isAdmin()) return !handler.hide && !handler.adminOnly;
-        return !handler.hide;
-      })
-      .forEach((handler) => {
-        const group =
-          handler.group[lang] ||
-          {
-            en: "Other",
-            id: "Lainnya",
-          }[lang];
+    await Promise.all(
+      handlers
+        .filter((handler) => {
+          if (!this.isAdmin()) return !handler.hide && !handler.adminOnly;
+          return !handler.hide;
+        })
+        .map(async (handler) => {
+          const group =
+            handler.group[lang] ||
+            {
+              en: "Other",
+              id: "Lainnya",
+            }[lang];
 
-        let line = "";
-        if (handler.cost)
-          line = this.getSentence("menulist_cost", {
-            name: handler.name[lang],
-            desc: handler.description[lang]
-              ? "| " + handler.description[lang]
-              : "",
-            alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
-            icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
-            cost: handler.cost,
-          });
-        else
-          line = this.getSentence("menulist", {
-            name: handler.name[lang],
-            desc: handler.description[lang]
-              ? "| " + handler.description[lang]
-              : "",
-            alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
-            icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
-          });
+          let line = "";
+          if (handler.cost)
+            line = await this.getSentence("menulist_cost", {
+              name: handler.name[lang],
+              desc: handler.description[lang]
+                ? "| " + handler.description[lang]
+                : "",
+              alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
+              icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
+              cost: handler.cost,
+            });
+          else
+            line = await this.getSentence("menulist", {
+              name: handler.name[lang],
+              desc: handler.description[lang]
+                ? "| " + handler.description[lang]
+                : "",
+              alias: handler.aliases.map((d) => "`" + d + "`").join(", "),
+              icon: handler.adminOnly ? "💫" : tierIcon[handler.tier] || "🔸",
+            });
 
-        if (!groupedCommands[group]) groupedCommands[group] = [];
-        groupedCommands[group].push(line);
-      });
+          if (!groupedCommands[group]) groupedCommands[group] = [];
+          groupedCommands[group].push(line);
+        })
+    );
 
     return groupedCommands;
   }
@@ -87,9 +89,9 @@ export default class CommandChild extends Command {
       })
       .join("\n\n");
 
-    const userTier = this.getUserTierData();
+    const userTier = await this.getUserTierData();
 
-    const text = this.getTxt("menu", {
+    const text = await this.getSentence("menu", {
       user: phoneToJid({
         from: this.msg.author,
         reverse: true,
@@ -102,7 +104,7 @@ export default class CommandChild extends Command {
       user_tier_duration: Math.ceil(
         ((userTier.duration as number) - Date.now()) / (1000 * 60 * 60 * 24)
       ),
-      user_limit: this.getUserLimit(),
+      user_limit: await this.getUserLimit(),
       user_nick: this.getUserConfig("nick") as string,
     });
 

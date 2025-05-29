@@ -46,7 +46,7 @@ export default class CommandChild extends Command {
       handler.aliases.includes(param_command)
     )[0];
     if (!cmd) {
-      this.errorExplanation = this.getSentence("cmd_not_found", {
+      this.errorExplanation = await this.getSentence("cmd_not_found", {
         cmd: param_command,
       });
       await this.sendExecutionError();

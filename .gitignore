@@ -8,3 +8,6 @@ dist/
 database/config.json
 database/userConfig.json
 database/matcher.json
+database/seed.ts
+
+firebaseCreds.json

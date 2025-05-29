@@ -1,5 +1,6 @@
-import fs from "fs";
-import { join } from "path";
+import { DB } from "./firebase";
+
+let _sentences_: Sentences;
 
 export const _languages_ = ["en", "id"] as const;
 export type Language = (typeof _languages_)[number];
@@ -47,27 +48,29 @@ export const _groups_: Record<CommandGroup, Sentence> = {
   },
 } as const;
 
-const getSentences: (txt?: string) => Sentences | string = (txt) => {
-  if (txt) {
-    try {
-      return fs.readFileSync(join(__dirname, `../../database/${txt}.txt`), {
-        encoding: "utf-8",
-      });
-    } catch (error) {
-      return "";
-    }
-  }
-  try {
-    const _sentences = fs.readFileSync(
-      join(__dirname, "../../database/sentences.json"),
-      {
-        encoding: "utf-8",
-      }
-    );
-    return JSON.parse(_sentences);
-  } catch (error) {
-    return {};
-  }
+export const getSentence = async (
+  idLang: Language,
+  langKey: string
+): Promise<string> => {
+  return (await getSentences())[idLang][langKey] ?? langKey;
 };
 
-export default getSentences;
+export const getSentences = async (): Promise<Sentences> => {
+  return _sentences_;
+};
+
+export const setSentences = async (): Promise<Sentences> => {
+  const result: Partial<Sentences> = {};
+
+  await Promise.all(
+    _languages_.map(async (lang) => {
+      const snapshot = await DB.collection("sentences").doc(lang).get();
+      result[lang] = snapshot.data() ?? {};
+    })
+  );
+
+  _sentences_ = result as Sentences;
+  return _sentences_;
+};
+
+export default getSentence;

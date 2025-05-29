@@ -68,23 +68,27 @@ export default class CommandChild extends Command {
     for (const data of param_data) {
       const { user, tier, duration, limit } = data;
 
-      this.getBOT().setUserConfig(user as string, "tier", tier as number);
-      this.getBOT().setUserConfig(
+      await this.getBOT().setUserConfig(user as string, "tier", tier as number);
+      await this.getBOT().setUserConfig(
         user as string,
         "duration",
         (duration as number) * 1000 + Date.now()
       );
-      this.getBOT().setUserConfig(user as string, "limit", limit as number);
+      await this.getBOT().setUserConfig(
+        user as string,
+        "limit",
+        limit as number
+      );
 
       await this.autoWA.sendText({
         to: user,
-        text: this.getSentence("uplan_upgraded", {
+        text: await this.getSentence("uplan_upgraded", {
           tier: _tierlist_[tier as number],
           duration: Math.ceil((duration as number) / (60 * 60 * 24)),
         }),
       });
     }
 
-    await this.msg.replyWithText(this.getSentence("uplan_success"));
+    await this.msg.replyWithText(await this.getSentence("uplan_success"));
   }
 }

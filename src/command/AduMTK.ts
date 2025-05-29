@@ -74,7 +74,7 @@ export default class CommandChild extends Command {
     if (reward < 25) reward = 25;
     const duration = 30;
 
-    let text = this.getSentence("adumtk_result", {
+    let text = await this.getSentence("adumtk_result", {
       reward,
       duration,
       quest: soal,

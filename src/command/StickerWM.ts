@@ -74,7 +74,7 @@ export default class CommandChild extends Command {
     const param_media = await this.getParamValue("media");
 
     await this.msg.replyWithSticker(param_media as Buffer, {
-      failMsg: this.getSentence("sticker_error"),
+      failMsg: await this.getSentence("sticker_error"),
     });
   }
 }

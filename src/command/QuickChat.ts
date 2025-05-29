@@ -89,7 +89,7 @@ export default class CommandChild extends Command {
 
       await this.msg.replyWithSticker(Buffer.from(response_.data));
     } catch (error) {
-      this.errorExplanation = this.getSentence("qc_server_error");
+      this.errorExplanation = await this.getSentence("qc_server_error");
       await this.sendExecutionError();
     }
   }

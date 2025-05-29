@@ -49,16 +49,19 @@ export default class CommandChild extends Command {
         );
 
         await this.msg.replyWithText(
-          this.getSentence("qanime_result", {
+          await this.getSentence("qanime_result", {
             char: my_quotes["character"],
             anime: my_quotes["anime"],
             q_id: my_quotes["indo"],
             q_en: my_quotes["english"],
           })
         );
-      } else await this.msg.replyWithText(this.getSentence("qanime_empty_msg"));
+      } else
+        await this.msg.replyWithText(
+          await this.getSentence("qanime_empty_msg")
+        );
     } catch (err) {
-      this.errorExplanation = this.getSentence("qanime_server_err");
+      this.errorExplanation = await this.getSentence("qanime_server_err");
       await this.sendExecutionError();
     }
   }

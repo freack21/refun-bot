@@ -46,7 +46,7 @@ export default class CommandChild extends Command {
       const answer = quest.find("span").text().toLowerCase();
 
       if (!answer) {
-        this.errorExplanation = this.getSentence("tgs_empty_msg");
+        this.errorExplanation = await this.getSentence("tgs_empty_msg");
         await this.sendExecutionError();
         return;
       }
@@ -54,7 +54,7 @@ export default class CommandChild extends Command {
       const duration = 60;
 
       const questMsg = await this.msg.replyWithImage(imgUrl, {
-        text: this.getSentence("tg_result", {
+        text: await this.getSentence("tg_result", {
           reward,
           duration,
         }),
@@ -62,7 +62,7 @@ export default class CommandChild extends Command {
 
       this.setUnAnsweredMsg(questMsg, [answer], reward, 60);
     } catch (err) {
-      this.errorExplanation = this.getSentence("tgs_server_err");
+      this.errorExplanation = await this.getSentence("tgs_server_err");
       await this.sendExecutionError();
     }
   }

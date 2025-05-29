@@ -47,8 +47,8 @@ export default class CommandChild extends Command {
   async execute(): Promise<void> {
     const param_nick = await this.getParamValue("nick");
 
-    this.setUserConfig("nick", param_nick as string);
+    await this.setUserConfig("nick", param_nick as string);
 
-    await this.msg.replyWithText(this.getSentence("cnick_success"));
+    await this.msg.replyWithText(await this.getSentence("cnick_success"));
   }
 }

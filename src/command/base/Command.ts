@@ -54,8 +54,15 @@ export default class Command {
     this.fundayBOT = fundayBOT;
   }
 
-  getSentence(langKey: string, replacements?: Replacements): string {
-    return this.fundayBOT.getSentence(this.msg.author, langKey, replacements);
+  async getSentence(
+    langKey: string,
+    replacements?: Replacements
+  ): Promise<string> {
+    return await this.fundayBOT.getSentence(
+      this.msg.author,
+      langKey,
+      replacements
+    );
   }
 
   async execute() {
@@ -86,12 +93,12 @@ export default class Command {
       return false;
     }
 
-    if (this.tier > this.getUserTier()) {
+    if (this.tier > (await this.getUserTier())) {
       await this.sendMustBePremium();
       return false;
     }
 
-    if (this.cost && this.getUserLimit() - this.cost < 0) {
+    if (this.cost && (await this.getUserLimit()) - this.cost < 0) {
       await this.sendNotEnoughLimit();
       return false;
     }
@@ -123,35 +130,37 @@ export default class Command {
     return true;
   }
 
-  getErrorMessage(with_args_error: boolean = false) {
-    let text = this.getSentence("error_command", {
+  async getErrorMessage(with_args_error: boolean = false) {
+    let text = await this.getSentence("error_command", {
       name: this.getName(),
     });
     if (with_args_error)
-      this.errorExplanation = this.getSentence("args_not_valid");
+      this.errorExplanation = await this.getSentence("args_not_valid");
 
     this.errorExplanation &&
-      (text += `\n\n*${this.getSentence("explanation")}:*\n${
+      (text += `\n\n*${await this.getSentence("explanation")}:*\n${
         this.errorExplanation
       }`);
     with_args_error &&
-      (text += `\n\n*${this.getSentence("valid_arg")}:*\n${this.expectedArgs}`);
+      (text += `\n\n*${await this.getSentence("valid_arg")}:*\n${
+        this.expectedArgs
+      }`);
 
     return text;
   }
 
-  getValidationMessage() {
-    let validationMsg = this.getSentence("validation", {
+  async getValidationMessage() {
+    let validationMsg = await this.getSentence("validation", {
       name: this.getName(),
     });
-    validationMsg += this.getExampleMessage();
-    validationMsg += this.getArgsMessage();
-    validationMsg += this.getAliasesMessage();
+    validationMsg += await this.getExampleMessage();
+    validationMsg += await this.getArgsMessage();
+    validationMsg += await this.getAliasesMessage();
 
     return validationMsg;
   }
 
-  getArgsMessage(cmd?: Command) {
+  async getArgsMessage(cmd?: Command) {
     const my_cmd = cmd || this;
     const parameters = [];
     for (const key in my_cmd.params) {
@@ -167,16 +176,16 @@ export default class Command {
     if (parameters.length) {
       return (
         "\n\n" +
-        this.getSentence("arguments", {
+        (await this.getSentence("arguments", {
           args: parameters.join("\n"),
-        })
+        }))
       );
     }
 
     return "";
   }
 
-  getExampleMessage(cmd?: Command) {
+  async getExampleMessage(cmd?: Command) {
     const my_cmd = cmd || this;
     let text = "/" + this.aliases[0];
     let textArgs = [];
@@ -188,7 +197,7 @@ export default class Command {
         exampleArgs.push(schema.example || "");
       } else
         attachments.push(
-          this.getSentence("attachment_pls", {
+          await this.getSentence("attachment_pls", {
             type: String(schema.type[this.getLang()]),
             req: schema.required ? "" : "?",
           })
@@ -205,43 +214,43 @@ export default class Command {
     }
     text =
       "\n\n" +
-      this.getSentence("examples", {
+      (await this.getSentence("examples", {
         text,
-      });
+      }));
 
     return text;
   }
 
-  getAliasesMessage(cmd?: Command, withNotes: boolean = true) {
+  async getAliasesMessage(cmd?: Command, withNotes: boolean = true) {
     const my_cmd = cmd || this;
 
     let text = "";
     if (my_cmd.aliases.length) {
       text +=
         "\n\n" +
-        this.getSentence("aliases", {
+        (await this.getSentence("aliases", {
           alias: my_cmd.aliases.map((d) => "`" + d + "`").join(", "),
-        });
+        }));
     }
 
     if (withNotes) {
-      text += "\n\n" + this.getSentence("notes");
+      text += "\n\n" + (await this.getSentence("notes"));
     }
 
     return text;
   }
 
   async sendExecutionError(with_args_error: boolean = false) {
-    await this.msg.replyWithText(this.getErrorMessage(with_args_error));
+    await this.msg.replyWithText(await this.getErrorMessage(with_args_error));
   }
 
   async sendValidationError() {
-    await this.msg.replyWithText(this.getValidationMessage());
+    await this.msg.replyWithText(await this.getValidationMessage());
   }
 
   async sendMustBeGroup() {
     await this.msg.replyWithText(
-      this.getSentence("must_be_group", {
+      await this.getSentence("must_be_group", {
         cmd: this.getName(),
       })
     );
@@ -249,7 +258,7 @@ export default class Command {
 
   async sendMustBePrivate() {
     await this.msg.replyWithText(
-      this.getSentence("must_be_private", {
+      await this.getSentence("must_be_private", {
         cmd: this.getName(),
       })
     );
@@ -257,7 +266,7 @@ export default class Command {
 
   async sendMustBePremium() {
     await this.msg.replyWithText(
-      this.getSentence("must_be_premium", {
+      await this.getSentence("must_be_premium", {
         cmd: this.getName(),
         tier: _tierlist_[this.tier],
       })
@@ -266,7 +275,7 @@ export default class Command {
 
   async sendMustBeAdmin() {
     await this.msg.replyWithText(
-      this.getSentence("must_be_admin", {
+      await this.getSentence("must_be_admin", {
         cmd: this.getName(),
       })
     );
@@ -274,7 +283,7 @@ export default class Command {
 
   async sendNotEnoughLimit() {
     await this.msg.replyWithText(
-      this.getSentence("not_enough_limit", {
+      await this.getSentence("not_enough_limit", {
         cmd: this.getName(),
         cost: this.cost,
       })
@@ -285,7 +294,7 @@ export default class Command {
     const lang = this.getLang();
     await this.autoWA.sendText({
       to: this.msg.key.remoteJid!,
-      text: this.getSentence("already_started", {
+      text: await this.getSentence("already_started", {
         topic: this.getName(),
       }),
       answering: quoting_msg,
@@ -318,16 +327,16 @@ export default class Command {
     return this.fundayBOT.getConfig(key);
   }
 
-  setConfig(key: string, value: ConfigValue) {
-    return this.fundayBOT.setConfig(key, value);
+  async setConfig(key: string, value: ConfigValue) {
+    return await this.fundayBOT.setConfig(key, value);
   }
 
   getUserConfig(key: string) {
     return this.fundayBOT.getUserConfig(this.msg.author, key);
   }
 
-  setUserConfig(key: string, value: ConfigValue) {
-    return this.fundayBOT.setUserConfig(this.msg.author, key, value);
+  async setUserConfig(key: string, value: ConfigValue) {
+    return await this.fundayBOT.setUserConfig(this.msg.author, key, value);
   }
 
   pickRandom<T>(arr: T[]): T {
@@ -367,7 +376,7 @@ export default class Command {
     return this.description[this.getLang()];
   }
 
-  setUnAnsweredMsg(
+  async setUnAnsweredMsg(
     msg: proto.IWebMessageInfo,
     answers: string[],
     reward: number,
@@ -378,28 +387,24 @@ export default class Command {
       answers,
       reward,
       duration,
-      right_msg: this.getSentence("answer_right", {
+      right_msg: await this.getSentence("answer_right", {
         topic: this.getName(),
         reward,
       }),
-      wrong_msg: this.getSentence("answer_wrong", {
+      wrong_msg: await this.getSentence("answer_wrong", {
         topic: this.getName(),
       }),
-      a_05_msg: this.getSentence("answer_05", {
+      a_05_msg: await this.getSentence("answer_05", {
         topic: this.getName(),
       }),
-      a_07_msg: this.getSentence("answer_07", {
+      a_07_msg: await this.getSentence("answer_07", {
         topic: this.getName(),
       }),
-      timeout_msg: this.getSentence("answer_timeout", {
+      timeout_msg: await this.getSentence("answer_timeout", {
         topic: this.getName(),
       }),
       createdAt: Date.now(),
     });
-  }
-
-  getTxt(langKey: string, replacements?: Replacements) {
-    return this.fundayBOT.getTxt(this.msg.author, langKey, replacements);
   }
 
   updateUserPoint(point: number) {
@@ -418,15 +423,15 @@ export default class Command {
     );
   }
 
-  getUserTierData(): UserTierData {
+  async getUserTierData(): Promise<UserTierData> {
     const tier = this.getUserConfig("tier") as number;
     const duration = this.getUserConfig("duration") as number;
     const limit = this.getUserConfig("limit") as number;
 
     if (Date.now() > duration) {
-      this.setUserConfig("tier", 0);
-      this.setUserConfig("limit", _limitlist_[0]);
-      this.setUserConfig(
+      await this.setUserConfig("tier", 0);
+      await this.setUserConfig("limit", _limitlist_[0]);
+      await this.setUserConfig(
         "duration",
         (this.fundayBOT.defaultUserConfig["duration"] as Function)()
       );
@@ -442,12 +447,12 @@ export default class Command {
     };
   }
 
-  getUserTier(): number {
-    return this.getUserTierData().tier as number;
+  async getUserTier(): Promise<number> {
+    return (await this.getUserTierData()).tier as number;
   }
 
-  getUserLimit(): number {
-    const limit = this.getUserTierData().limit;
+  async getUserLimit(): Promise<number> {
+    const limit = (await this.getUserTierData()).limit;
     const limit_last_used = this.getUserConfig("limit_last_used") as string;
     const now = new Date(Date.now() + 7 * 60 * 60 * 1000)
       .toISOString()
@@ -456,19 +461,19 @@ export default class Command {
       .pop()!;
 
     if (limit_last_used != now) {
-      const new_limit = _limitlist_[this.getUserTier()];
-      this.setUserConfig("limit", new_limit);
-      this.setUserConfig("limit_last_used", now);
+      const new_limit = _limitlist_[await this.getUserTier()];
+      await this.setUserConfig("limit", new_limit);
+      await this.setUserConfig("limit_last_used", now);
       return new_limit;
     }
 
     return limit as number;
   }
 
-  updateUserLimit(much: number = 0) {
-    let limit = this.getUserLimit();
+  async updateUserLimit(much: number = 0) {
+    let limit = await this.getUserLimit();
     limit += much;
-    this.setUserConfig("limit", limit);
+    await this.setUserConfig("limit", limit);
     return limit;
   }
 }

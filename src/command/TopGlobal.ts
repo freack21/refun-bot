@@ -59,7 +59,7 @@ export default class CommandChild extends Command {
       })
       .join("\n");
 
-    const text = this.getSentence("glb", {
+    const text = await this.getSentence("glb", {
       lb,
     });
 

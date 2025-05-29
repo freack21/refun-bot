@@ -7,6 +7,7 @@ import querystring from "querystring";
 import { _groups_ } from "../data/lang";
 
 export default class CommandChild extends Command {
+  public hide: boolean = true;
   aliases = ["simi"];
   name = {
     en: "SimSimi",
@@ -53,9 +54,10 @@ export default class CommandChild extends Command {
       );
       if (res.data.message)
         await this.msg.replyWithText(res.data.message.trim());
-      else await this.msg.replyWithText(this.getSentence("simi_empty_msg"));
+      else
+        await this.msg.replyWithText(await this.getSentence("simi_empty_msg"));
     } catch (err) {
-      this.errorExplanation = this.getSentence("simi_server_err");
+      this.errorExplanation = await this.getSentence("simi_server_err");
       await this.sendExecutionError();
     }
   }

@@ -17,6 +17,7 @@ export default class CommandChild extends Command {
   };
   group = _groups_["knowledge"];
   public cost: number = 1;
+  public hide: boolean = true;
 
   constructor(
     autoWA: AutoWA,
@@ -41,13 +42,14 @@ export default class CommandChild extends Command {
           .join("\n\n");
 
         await this.msg.replyWithImage(data.data.image_link, {
-          text: this.getSentence("tgs_result", {
+          text: await this.getSentence("tgs_result", {
             msg: info,
           }),
         });
-      } else await this.msg.replyWithText(this.getSentence("tgs_empty_msg"));
+      } else
+        await this.msg.replyWithText(await this.getSentence("tgs_empty_msg"));
     } catch (err) {
-      this.errorExplanation = this.getSentence("tgs_server_err");
+      this.errorExplanation = await this.getSentence("tgs_server_err");
       await this.sendExecutionError();
     }
   }
