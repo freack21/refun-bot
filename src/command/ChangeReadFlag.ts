@@ -8,11 +8,11 @@ export default class CommandChild extends Command {
   aliases = ["cread", "cr"];
   name = {
     en: "Change Read Flage",
-    id: "Ubah Bahasa",
+    id: "Ubah Tanda Baca",
   };
   description = {
-    id: "Ubah preferensi bahasa yang digunakan bot",
-    en: "Change the language preferences used by the bot",
+    id: "Ubah status tanda baca bot",
+    en: "Change bot read flag",
   };
   public adminOnly: boolean = true;
   public group: Sentence = _groups_["admin"];
@@ -49,10 +49,10 @@ export default class CommandChild extends Command {
   async execute(): Promise<void> {
     const param_flag = await this.getParamValue("flag");
 
-    await this.setConfig("reading", param_flag != 0);
+    await this.setConfig("reading", param_flag != null);
 
     await this.msg.replyWithText(
-      await this.getSentence("success_ChangeLanguage")
+      await this.getSentence("success_ChangeReadFlag")
     );
   }
 }
